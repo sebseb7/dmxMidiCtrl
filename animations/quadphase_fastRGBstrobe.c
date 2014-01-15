@@ -20,19 +20,19 @@ static uint8_t tick(void)
 {
 	b++;
 
-	if(b == 20)
+	if(b == 30)
 	{
 		setCh(1,1);
 		setCh(4,255);
 		setCh(5,1);
 		setCh(8,255);
 	}
-	if(b == 22)
+	if(b == 32)
 	{
 		setCh(4,0);
 		setCh(8,0);
 	}
-	if(b == 30)
+	if(b == 40)
 	{
 		setCh(16,255);
 		setCh(17,0);
@@ -41,7 +41,7 @@ static uint8_t tick(void)
 		setCh(23,0);
 		setCh(24,0);
 	}
-	if(b == 32)
+	if(b == 41)
 	{
 		setCh(16,0);
 		setCh(17,0);
@@ -50,26 +50,44 @@ static uint8_t tick(void)
 		setCh(23,0);
 		setCh(24,0);
 	}
-	if(b == 40)
+	if(b == 50)
+	{
+		setCh(16,255);
+		setCh(17,0);
+		setCh(18,0);
+		setCh(22,255);
+		setCh(23,0);
+		setCh(24,0);
+	}
+	if(b == 51)
+	{
+		setCh(16,0);
+		setCh(17,0);
+		setCh(18,0);
+		setCh(22,0);
+		setCh(23,0);
+		setCh(24,0);
+	}
+	if(b == 60)
 	{
 		setCh(1,18);
 		setCh(4,255);
 		setCh(5,18);
 		setCh(8,255);
 	}
-	if(b == 42)
+	if(b == 62)
 	{
 		setCh(4,0);
 		setCh(8,0);
 	}
-	if(b == 60)
+	if(b == 90)
 	{
 		setCh(1,35);
 		setCh(4,255);
 		setCh(5,35);
 		setCh(8,255);
 	}
-	if(b == 62)
+	if(b == 92)
 	{
 		setCh(4,0);
 		setCh(8,0);

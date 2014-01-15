@@ -10,8 +10,9 @@
 #include<sys/time.h>
 
 #include "ftd2xx.h"
+#include "keyboard.h"
 
-static unsigned char ch[255];
+static unsigned char ch[512];
 
 static int running = 1;
 
@@ -58,6 +59,13 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
+	
+	keyboard_init();
+	for(uint8_t i = 32;i <= 39;i++)
+	{
+		keyboard_send(176,i,0);
+	}
+	keyboard_send(176,32,127);
 
 	FT_HANDLE ftHandle; 
 
@@ -81,6 +89,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	} 
 	printf("open ok\n");
 
+		if((ftStatus = FT_SetBaudRate(ftHandle, 250000)) != FT_OK) {
+			printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
+			return 1;
+		}
 
 
 	if((ftStatus = FT_SetDataCharacteristics(ftHandle, 
@@ -120,31 +132,25 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		animations[current_animation].tick_fp();
 
 		l++;	
-		usleep(1000);
 
-		if((ftStatus = FT_SetBaudRate(ftHandle, 38400)) != FT_OK) {
-			printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
+		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {
+			printf("Error FT_SetBreakon\n");
 			return 1;
 		}
-		usleep(1200);
-
+		usleep(100);
+		if((ftStatus = FT_SetBreakOff(ftHandle)) != FT_OK) {
+			printf("Error FT_SetBreakOff\n");
+			return 1;
+		}
 		unsigned char c=0;
 
-		if((ftStatus = FT_Write(ftHandle, &c, 1, &BytesWritten)) != FT_OK) {
+		if((ftStatus = FT_Write(ftHandle, &c, 0, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
 			return 1;
 		}
+		usleep(10);
 
-
-		if((ftStatus = FT_SetBaudRate(ftHandle, 250000)) != FT_OK) {
-			printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
-			return 1;
-		}
-
-		usleep(200);
-
-
-		if((ftStatus = FT_Write(ftHandle, ch, 100, &BytesWritten)) != FT_OK) {
+		if((ftStatus = FT_Write(ftHandle, ch, 32, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
 			return 1;
 		}
@@ -162,6 +168,12 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		if(diff > 0)
 		{
 			usleep(diff);
+		}
+	
+		KeyboardEvent e;
+		while(keyboard_poll(&e)) 
+		{
+			printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 
 
