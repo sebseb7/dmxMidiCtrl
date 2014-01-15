@@ -3,7 +3,7 @@ UNAME := $(shell uname)
 COMPILER = gcc
 
 
-FLAGS= -I. -I../firmware --std=gnu99 -Wall  -funsigned-char -Wundef -Wsign-compare  -Wstrict-prototypes  -fsingle-precision-constant
+FLAGS= -I. -I../firmware --std=gnu99 -Wall  -funsigned-char -Wundef -Wsign-compare  -Wstrict-prototypes  -fsingle-precision-constant -Wextra -L. -lftd2xx -Wl,-rpath /usr/local/lib
 LDFLAGS=
 BINEXT=
 
@@ -34,7 +34,7 @@ clean:
 
 dmxMidiCtrl: $(SOURCES) $(LIB_SOURCES) $(LIB_HEADERS) main.c main.h Makefile 
 	@echo -e "  \033[1;34mCompile\033[0m"
-	@$(COMPILER) $(FLAGS) $(LIB_SOURCES) $(SOURCES) main.c $(LDFLAGS) -o dmxMidiCtrl -I. 
+	@$(COMPILER) main.c $(LDFLAGS) -o dmxMidiCtrl -I. $(FLAGS) $(LIB_SOURCES) $(SOURCES)   
 
 .PHONY : clean all
 

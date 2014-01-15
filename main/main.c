@@ -9,57 +9,18 @@
 #include <string.h>
 #include<sys/time.h>
 
-#include <termios.h>
-#include <fcntl.h>
-#include <errno.h>
-//#if defined(MAC_OS_X_VERSION_10_4) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
-#include <sys/ioctl.h>
-#include <IOKit/serial/ioss.h>
-//#endif
+#include "ftd2xx.h"
+#define BUF_SIZE 0x10
+#define MAX_DEVICES		5
 
-static int serial_bridge;
 static unsigned char ch[255];
 
 static int running = 1;
 
 void intHandler(int dummy) 
 {
-	close(serial_bridge);
-	running = 0;
-	printf("exiting\n");
+	running = 0*dummy;
 }
-
-void init_serial() {
-
-	serial_bridge = open("/dev/cu.usbserial-A602SRIU", O_RDWR);
-
-	struct termios config;
-	memset(&config, 0, sizeof(config));
-	tcgetattr(serial_bridge, &config);
-
-	config.c_iflag = 0;
-	config.c_oflag = 0;
-	config.c_lflag = 0;
-	config.c_cc[VMIN] = 1;
-	config.c_cc[VTIME] = 5;
-
-	cfsetospeed(&config, B115200);
-	cfsetispeed(&config, B115200);
-	config.c_cflag = CS8 | CREAD | CLOCAL | CSTOPB;
-	tcsetattr(serial_bridge, TCSANOW, &config);
-
-
-
-	speed_t speed = 9600;
-	if ( ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
-	{
-		printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
-	}
-
-}
-
-
-
 
 #define MAX_ANIMATIONS 200
 
@@ -75,11 +36,6 @@ struct animation {
 	uint32_t idle;
 } animations[MAX_ANIMATIONS];
 
-
-void Delay(uint16_t t)
-{
-
-}
 
 void setCh(uint8_t chan, uint8_t value)
 {
@@ -105,10 +61,42 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
 
+	FT_HANDLE ftHandle; 
+
+	FT_STATUS ftStatus; 
+
+	DWORD BytesWritten; 
+
+
+	printf("start\n");
+
+
+	ftStatus = FT_Open(0, &ftHandle); 
+
+	if(ftStatus != FT_OK) { 
+
+		// FT_Open failed 
+
+		printf("open failed\n");
+		//return; 
+
+	} 
+	printf("open ok\n");
+
+
+
+	if((ftStatus = FT_SetDataCharacteristics(ftHandle, 
+					FT_BITS_8,
+					FT_STOP_BITS_2,
+					FT_PARITY_NONE)) != FT_OK) {
+		printf("Error FT_SetDataCharacteristics)\n");
+		return 1;
+	}
+
+
 
 	srand(time(NULL));
 
-	init_serial();
 	signal(SIGINT, intHandler);
 	char l  = 0;
 
@@ -121,7 +109,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	animations[current_animation].init_fp();
 
 	int tick_count = 0;
-	
+
 	unsigned long long t1, t2;
 
 	struct timeval tv;
@@ -133,32 +121,35 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 		animations[current_animation].tick_fp();
 
-			l++;	
-			usleep(1000);
-			speed_t speed = 38400;
-			if ( running && ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
-			{
-				printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
-			}
-			usleep(1200);
+		l++;	
+		usleep(1000);
 
-			unsigned char c=0;
-			write(serial_bridge,&c,1);
-			tcdrain(serial_bridge);
-			usleep(200);
+		if((ftStatus = FT_SetBaudRate(ftHandle, 38400)) != FT_OK) {
+			printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
+			return 1;
+		}
+		usleep(1200);
 
-			speed = 250000;
-			if ( running && ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
-			{
-				printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
-			}
-			usleep(200);
+		unsigned char c=0;
+
+		if((ftStatus = FT_Write(ftHandle, &c, 1, &BytesWritten)) != FT_OK) {
+			printf("Error FT_Write\n");
+			return 1;
+		}
 
 
+		if((ftStatus = FT_SetBaudRate(ftHandle, 250000)) != FT_OK) {
+			printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
+			return 1;
+		}
+
+		usleep(200);
 
 
-			if(running) write(serial_bridge,ch,100);
-			tcdrain(serial_bridge);
+		if((ftStatus = FT_Write(ftHandle, ch, 100, &BytesWritten)) != FT_OK) {
+			printf("Error FT_Write\n");
+			return 1;
+		}
 
 		gettimeofday(&tv,NULL);
 		t2 = tv.tv_usec;
@@ -195,6 +186,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 		}
 	}
+	printf("exiting\n");
+	FT_Close(ftHandle); 
 
 	return 0;
 }
