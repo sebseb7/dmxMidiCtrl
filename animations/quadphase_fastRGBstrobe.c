@@ -24,33 +24,69 @@ static uint8_t tick(void)
 	{
 		setCh(1,1);
 		setCh(4,255);
+		setCh(5,1);
+		setCh(8,255);
 	}
 	if(b == 22)
 	{
 		setCh(4,0);
+		setCh(8,0);
+	}
+	if(b == 30)
+	{
+		setCh(16,255);
+		setCh(17,0);
+		setCh(18,0);
+		setCh(22,255);
+		setCh(23,0);
+		setCh(24,0);
+	}
+	if(b == 32)
+	{
+		setCh(16,0);
+		setCh(17,0);
+		setCh(18,0);
+		setCh(22,0);
+		setCh(23,0);
+		setCh(24,0);
 	}
 	if(b == 40)
 	{
 		setCh(1,18);
 		setCh(4,255);
+		setCh(5,18);
+		setCh(8,255);
 	}
 	if(b == 42)
 	{
 		setCh(4,0);
+		setCh(8,0);
 	}
 	if(b == 60)
 	{
 		setCh(1,35);
 		setCh(4,255);
+		setCh(5,35);
+		setCh(8,255);
 	}
 	if(b == 62)
 	{
 		setCh(4,0);
+		setCh(8,0);
 		b=0;
 	}
 
 	setCh(2,60);
 	setCh(3,0);
+	setCh(6,60);
+	setCh(7,0);
+	setCh(19,0);
+	setCh(20,0);
+	setCh(21,0);
+	
+	setCh(25,0);
+	setCh(26,0);
+	setCh(27,0);
 
 	return 1;
 }

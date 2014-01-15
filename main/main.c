@@ -10,8 +10,6 @@
 #include<sys/time.h>
 
 #include "ftd2xx.h"
-#define BUF_SIZE 0x10
-#define MAX_DEVICES		5
 
 static unsigned char ch[255];
 
