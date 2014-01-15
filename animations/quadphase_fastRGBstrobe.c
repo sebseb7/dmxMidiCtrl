@@ -14,31 +14,43 @@
 //       250-255 music
 
 uint16_t a;
+uint16_t b;
 
 static uint8_t tick(void) 
 {
-	a++;
+	b++;
 
-	//printf("%i\n",a);
-
-	if(((a>>1) % 2) == 0)
+	if(b == 20)
+	{
+		setCh(1,1);
+		setCh(4,255);
+	}
+	if(b == 22)
+	{
+		setCh(4,0);
+	}
+	if(b == 40)
+	{
+		setCh(1,18);
+		setCh(4,255);
+	}
+	if(b == 42)
+	{
+		setCh(4,0);
+	}
+	if(b == 60)
 	{
 		setCh(1,35);
+		setCh(4,255);
 	}
-	else
+	if(b == 62)
 	{
-		setCh(1,10);
+		setCh(4,0);
+		b=0;
 	}
-	if((((a+1)>>1) % 2) == 0)
-	{
-		setCh(2,20);
-	}
-	else
-	{
-		setCh(2,245);
-	}
+
+	setCh(2,60);
 	setCh(3,0);
-	setCh(4,255);
 
 	return 1;
 }
@@ -46,6 +58,7 @@ static uint8_t tick(void)
 static void init(void)
 {
 	a=0;
+	b=0;
 }
 
 
@@ -57,7 +70,7 @@ static void deinit(void)
 
 static void constructor(void) CONSTRUCTOR_ATTRIBUTES
 void constructor(void) {
-	registerAnimation(init,tick,deinit, QUADPHASE,6, 10,1);
+	registerAnimation(init,tick,deinit, QUADPHASE,80, 10,1);
 }
 
 

@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
-#include <SDL/SDL.h>
+#include <signal.h>
 
 #include "main.h"
 #include <string.h>
@@ -19,6 +19,15 @@
 
 static int serial_bridge;
 static unsigned char ch[255];
+
+static int running = 1;
+
+void intHandler(int dummy) 
+{
+	close(serial_bridge);
+	running = 0;
+	printf("exiting\n");
+}
 
 void init_serial() {
 
@@ -67,7 +76,6 @@ struct animation {
 } animations[MAX_ANIMATIONS];
 
 
-SDL_Surface* screen;
 void Delay(uint16_t t)
 {
 
@@ -85,10 +93,10 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 	animations[animationcount].init_fp = init;
 	animations[animationcount].tick_fp = tick;
 	animations[animationcount].deinit_fp = deinit;
-	animations[animationcount].duration = count;
+	animations[animationcount].duration = t*count;
 	animations[animationcount].type = type;
 	animations[animationcount].idle = idle;
-	animations[animationcount].timing = 1000/t;
+	animations[animationcount].timing = 1000000/t;
 
 	animationcount++;
 
@@ -101,11 +109,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	srand(time(NULL));
 
 	init_serial();
+	signal(SIGINT, intHandler);
 	char l  = 0;
 
 	int current_animation = 0;
 
-	screen = SDL_SetVideoMode(100,100,32, SDL_SWSURFACE | SDL_DOUBLEBUF);
 
 
 	ch[0]=0;
@@ -113,79 +121,59 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	animations[current_animation].init_fp();
 
 	int tick_count = 0;
-	int running = 1;
-	//unsigned long long int startTime = get_clock();
-	Uint32 lastFrame = SDL_GetTicks(); 
+	
+	unsigned long long t1, t2;
+
+	struct timeval tv;
 
 	while(running) {
-		SDL_Event ev;
-		while(SDL_PollEvent(&ev)) {
-			switch(ev.type) {
-				case SDL_QUIT:
-					running = 0;
-					close(serial_bridge);
-					break;
-				case SDL_KEYDOWN:
-					switch(ev.key.keysym.sym) {
-						case SDLK_ESCAPE:
-							close(serial_bridge);
-							running = 0;
-							break;
-						default: break;
-					}
-				default: break;
-			}
-		}
+
+		gettimeofday(&tv,NULL);
+		t1 = tv.tv_usec;
 
 		animations[current_animation].tick_fp();
 
+			l++;	
+			usleep(1000);
+			speed_t speed = 38400;
+			if ( running && ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
+			{
+				printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+			}
+			usleep(1200);
+
+			unsigned char c=0;
+			write(serial_bridge,&c,1);
+			tcdrain(serial_bridge);
+			usleep(200);
+
+			speed = 250000;
+			if ( running && ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
+			{
+				printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+			}
+			usleep(200);
 
 
 
 
+			if(running) write(serial_bridge,ch,100);
+			tcdrain(serial_bridge);
 
-				SDL_Rect rect = { 0,0,100,100};
-				SDL_FillRect(
-						screen, 
-						&rect, 
-						SDL_MapRGB(screen->format, 0,0,100)
-						);
+		gettimeofday(&tv,NULL);
+		t2 = tv.tv_usec;
 
-
-		SDL_Flip(screen);
-
-		l++;	
-		usleep(5000);
-		speed_t speed = 38400;
-		if ( ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
+		int32_t diff = t2-t1;
+		if(diff < 0 )
 		{
-			printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+			diff+=1000000;
 		}
-		usleep(1200);
+		diff = animations[current_animation].timing-diff;
 
-		unsigned char c=0;
-		write(serial_bridge,&c,1);
-		usleep(200);
-
-		speed = 250000;
-		if ( ioctl( serial_bridge,  IOSSIOSPEED, &speed ) == -1 )
+		if(diff > 0)
 		{
-			printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+			usleep(diff);
 		}
-		usleep(200);
-
-
-
-
-		write(serial_bridge,ch,100);
-
-		Uint32 now = SDL_GetTicks() - lastFrame; 
-
-		if( now < animations[current_animation].timing )
-		{
-			SDL_Delay(animations[current_animation].timing - now);
-		}
-		lastFrame = SDL_GetTicks();
 
 
 		tick_count++;
@@ -208,7 +196,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 	}
 
-	SDL_Quit();
 	return 0;
 }
 

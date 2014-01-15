@@ -11,18 +11,14 @@ ifeq ($(UNAME), Darwin)
 	COMPILER = clang
 	FLAGS   += -Qunused-arguments
 
-	FLAGS   += `sdl-config --cflags`
-	LDFLAGS += `sdl-config --libs`
 endif
 
 ifeq ($(UNAME), Linux)
-	FLAGS   += `sdl-config --cflags`
-	LDFLAGS += `sdl-config --libs`
 endif
 
 ifeq ($(UNAME), MINGW32_NT-6.1)
 	FLAGS   += -I/MinGW/msys/1.0/include/
-	LDFLAGS += -L/MinGW/msys/1.0/lib -lmingw32 -lSDLmain -lSDL
+	LDFLAGS += -L/MinGW/msys/1.0/lib -lmingw32 
 	BINEXT = .exe
 endif
 
