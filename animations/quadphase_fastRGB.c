@@ -20,28 +20,8 @@ static uint8_t tick(void)
 {
 	b++;
 
-	if(b < 100)
-	{
-		a++;
-	}
-	else if (b < 200)
-	{
-		if((b%3)==0)
-		{
-			a++;
-		}
-	}
-	else if (b < 300)
-	{
 		if((b%10)==0)
-		{
 			a++;
-		}
-	}
-	else
-	{
-		b=0;
-	}
 
 
 		setCh(16,0);
@@ -60,15 +40,6 @@ static uint8_t tick(void)
 		setCh(1,1);
 		setCh(5,1);
 
-		if(b > 200)
-		{
-			setCh(16,0);
-			setCh(17,255);
-			setCh(18,0);
-			setCh(22,0);
-			setCh(23,0);
-			setCh(24,255);
-		}
 	
 	}
 	if((a % 3) ==1)
@@ -76,30 +47,12 @@ static uint8_t tick(void)
 		setCh(1,17);
 		setCh(5,17);
 		
-		if(b > 200)
-		{
-		setCh(16,0);
-		setCh(17,0);
-		setCh(18,255);
-		setCh(22,255);
-		setCh(23,0);
-		setCh(24,0);
-		}
 	}
 	if((a % 3) ==2)
 	{
 		setCh(1,34);
 		setCh(5,34);
 		
-		if(b > 200)
-		{
-		setCh(16,255);
-		setCh(17,0);
-		setCh(18,0);
-		setCh(22,0);
-		setCh(23,255);
-		setCh(24,0);
-		}
 	}
 	setCh(2,20);
 	setCh(3,0);
@@ -135,7 +88,7 @@ static void deinit(void)
 
 static void constructor(void) CONSTRUCTOR_ATTRIBUTES
 void constructor(void) {
-	registerAnimation(init,tick,deinit, QUADPHASE,30, 10,1);
+	registerAnimation(init,tick,deinit, QUADPHASE,30, 30,1);
 }
 
 

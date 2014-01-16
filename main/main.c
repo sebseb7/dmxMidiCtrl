@@ -111,6 +111,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	char l  = 0;
 
 	int current_animation = 0;
+	int new_animation = 0;
 
 
 
@@ -173,6 +174,18 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		KeyboardEvent e;
 		while(keyboard_poll(&e)) 
 		{
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=32)&&(e.x<40)&&(e.x < 32+animationcount))
+			{
+				new_animation = e.x-32;
+			}
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=48)&&(e.x<56)&&(e.x < 48+animationcount-8))
+			{
+				new_animation = e.x-48+8;
+			}
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=64)&&(e.x<72)&&(e.x < 64+animationcount-16))
+			{
+				new_animation = e.x-64+16;
+			}
 			printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 
@@ -180,14 +193,39 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		tick_count++;
 
 
-		if(tick_count == animations[current_animation].duration)
+		if((tick_count == animations[current_animation].duration)||(new_animation != current_animation))
 		{
 			animations[current_animation].deinit_fp();
 
-			current_animation++;
-			if(current_animation == animationcount)
+			if(current_animation < 8)
 			{
-				current_animation = 0;
+				keyboard_send(176,32+current_animation,0);
+			}
+			else if(current_animation < 16)
+			{
+				keyboard_send(176,48+(current_animation-8),0);
+			}
+
+			if(new_animation != current_animation)
+			{
+				current_animation= new_animation;
+			}
+			else
+			{
+				current_animation++;
+				if(current_animation == animationcount)
+				{
+					current_animation = 0;
+				}
+				new_animation= current_animation;
+			}
+			if(current_animation < 8)
+			{
+				keyboard_send(176,32+current_animation,127);
+			}
+			else if(current_animation < 16)
+			{
+				keyboard_send(176,48+(current_animation-8),127);
 			}
 			tick_count=0;
 

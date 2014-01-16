@@ -18,13 +18,49 @@ uint16_t a;
 static uint8_t tick(void) 
 {
 	a++;
+	
 
-	//printf("%i\n",a);
-
-	if(((a>>1) % 2) == 0)
+	if(((a % 80) == 0)||((a % 80) == 10))
+	{
+		setCh(1,1);
+		setCh(5,1);
+		setCh(4,255);
+		setCh(8,255);
+		setCh(16,255);
+		setCh(17,0);
+		setCh(18,0);
+		setCh(22,255);
+		setCh(23,0);
+		setCh(24,0);
+	}
+	if(((a % 80) == 1)||((a % 80) == 11))
+	{
+		setCh(4,0);
+		setCh(8,0);
+		setCh(16,0);
+		setCh(17,0);
+		setCh(18,0);
+		setCh(22,0);
+		setCh(23,0);
+		setCh(24,0);
+	}
+	if(((a % 80) == 40)||((a % 80) == 50))
 	{
 		setCh(1,35);
 		setCh(5,35);
+		setCh(4,255);
+		setCh(8,255);
+		setCh(16,0);
+		setCh(17,0);
+		setCh(18,255);
+		setCh(22,0);
+		setCh(23,0);
+		setCh(24,255);
+	}
+	if(((a % 80) == 41)||((a % 80) == 51))
+	{
+		setCh(4,0);
+		setCh(8,0);
 		setCh(16,0);
 		setCh(17,0);
 		setCh(18,0);
@@ -32,32 +68,11 @@ static uint8_t tick(void)
 		setCh(23,0);
 		setCh(24,0);
 	}
-	else
-	{
-		setCh(1,10);
-		setCh(5,10);
-		setCh(16,0);
-		setCh(17,0);
-		setCh(18,0);
-		setCh(22,0);
-		setCh(23,0);
-		setCh(24,0);
-	}
-	if((((a+1)>>1) % 2) == 0)
-	{
-		setCh(2,20);
-		setCh(6,20);
-	}
-	else
-	{
-		setCh(2,245);
-		setCh(6,245);
-	}
+
+	setCh(2,0);
 	setCh(3,0);
-	setCh(4,255);
+	setCh(6,0);
 	setCh(7,0);
-	setCh(8,255);
-	
 	setCh(19,0);
 	setCh(20,0);
 	setCh(21,0);
@@ -83,7 +98,7 @@ static void deinit(void)
 
 static void constructor(void) CONSTRUCTOR_ATTRIBUTES
 void constructor(void) {
-	registerAnimation(init,tick,deinit, QUADPHASE,4, 30,1);
+	registerAnimation(init,tick,deinit, QUADPHASE,70, 30,1);
 }
 
 

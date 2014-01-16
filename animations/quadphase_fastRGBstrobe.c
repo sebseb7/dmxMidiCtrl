@@ -124,7 +124,7 @@ static void deinit(void)
 
 static void constructor(void) CONSTRUCTOR_ATTRIBUTES
 void constructor(void) {
-	registerAnimation(init,tick,deinit, QUADPHASE,80, 10,1);
+	registerAnimation(init,tick,deinit, QUADPHASE,80, 30,1);
 }
 
 
