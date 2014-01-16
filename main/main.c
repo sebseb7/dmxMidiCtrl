@@ -13,6 +13,7 @@
 #include "keyboard.h"
 
 static unsigned char ch[512];
+static unsigned char in[512];
 
 static int running = 1;
 
@@ -39,6 +40,15 @@ struct animation {
 void setCh(uint8_t chan, uint8_t value)
 {
 	ch[chan] = value;
+}
+
+void setIn(uint8_t chan, uint8_t value)
+{
+	in[chan] = value;
+}
+uint8_t getIn(uint8_t chan)
+{
+	return in[chan];
 }
 
 void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t type,uint16_t t, uint16_t count, uint8_t idle)
@@ -187,6 +197,15 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				new_animation = e.x-64+16;
 			}
 			printf("%d %d %d\n", e.x, e.y, e.type);
+		}
+		while(jockey_poll(&e)) 
+		{
+			if((e.type == 176)&&(e.x==55))
+			{
+			printf("set xf to %d\n", e.y);
+				setIn(0,e.y);
+			}
+			printf("jockey: %d %d %d\n", e.x, e.y, e.type);
 		}
 
 

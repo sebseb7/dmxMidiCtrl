@@ -23,6 +23,7 @@ void registerAnimation(init_fun init,tick_fun tick,deinit_fun deinit, uint16_t t
 
 void setLedX(uint8_t x, uint8_t r,uint8_t g,uint8_t b);
 void setCh(uint8_t chan, uint8_t value);
+uint8_t getIn(uint8_t chan);
 void invLedX(uint8_t x);
 void Delay(uint16_t t);
 void getLedX(uint8_t x, uint8_t* red, uint8_t* green, uint8_t* blue);

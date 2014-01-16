@@ -21,12 +21,20 @@ static uint8_t tick(void)
 
 	//printf("%i\n",a);
 
-	setCh(1,35);
+	if(getIn(0) > 64)
+	{
+		setCh(1,35);
+		setCh(5,1);
+	}
+	else
+	{
+		setCh(1,1);
+		setCh(5,35);
+	}
 	setCh(2,20);
 	setCh(3,0);
 	setCh(4,255);
 	
-	setCh(5,35);
 	setCh(6,20);
 	setCh(7,0);
 	setCh(8,255);
@@ -63,7 +71,7 @@ static void deinit(void)
 
 static void constructor(void) CONSTRUCTOR_ATTRIBUTES
 void constructor(void) {
-	registerAnimation(init,tick,deinit, QUADPHASE,6, 30,1);
+	registerAnimation(init,tick,deinit, QUADPHASE,30, 30,1);
 }
 
 

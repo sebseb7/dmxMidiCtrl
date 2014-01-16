@@ -12,51 +12,68 @@ enum {
 
 
 static PortMidiStream* midi_stream = NULL;
+static PortMidiStream* midi_stream_jockey = NULL;
 static PortMidiStream* midi_stream_out = NULL;
 
 int find_device_id_in()
 {
-    const PmDeviceInfo *di;
-    for(int i= 0; ; i++)
-    {
-        di= Pm_GetDeviceInfo(i);
-        if(!di) break;
-        if(strstr(di->name, "nanoKONTROL") && di->input)
-        //if(strstr(di->name, "Traktor Virtual Output") && di->input)
-        {
-            printf("found in device '%s' with interf '%s'\n", di->name, di->interf);
-            return i;
-        }
-    }
-    return -1;
+	const PmDeviceInfo *di;
+	for(int i= 0; ; i++)
+	{
+		di= Pm_GetDeviceInfo(i);
+		if(!di) break;
+		if(strstr(di->name, "nanoKONTROL") && di->input)
+		{
+			printf("found in device '%s' with interf '%s'\n", di->name, di->interf);
+			return i;
+		}
+	}
+	return -1;
+}
+
+int find_device_id_jockey()
+{
+	const PmDeviceInfo *di;
+	for(int i= 0; ; i++)
+	{
+		di= Pm_GetDeviceInfo(i);
+		if(!di) break;
+		if(strstr(di->name, "Jockey 3 Remix MIDI") && di->input)
+		{
+			printf("found in device '%s' with interf '%s'\n", di->name, di->interf);
+			return i;
+		}
+	}
+	return -1;
 }
 
 int find_device_id_out()
 {
-    const PmDeviceInfo *di;
-    for(int i= 0; ; i++)
-    {
-        di= Pm_GetDeviceInfo(i);
-        if(!di) break;
-        if(strstr(di->name, "nanoKONTROL") && di->output)
-        //if(strstr(di->name, "Traktor Virtual Input") && di->output)
-        {
-            printf("found out device '%s' with interf '%s'\n", di->name, di->interf);
-            return i;
-        }
-    }
-    return -1;
+	const PmDeviceInfo *di;
+	for(int i= 0; ; i++)
+	{
+		di= Pm_GetDeviceInfo(i);
+		if(!di) break;
+		if(strstr(di->name, "nanoKONTROL") && di->output)
+		{
+			printf("found out device '%s' with interf '%s'\n", di->name, di->interf);
+			return i;
+		}
+	}
+	return -1;
 }
 
 int keyboard_init(void) {
 
 	// open midi device
 	Pm_Initialize();
-    
+
 	//~ const PmDeviceInfo* dev_info = Pm_GetDeviceInfo(KEYBOARD_DEV_ID);
-    int devid= find_device_id_in();
-    int devid_out= find_device_id_out();
+	int devid= find_device_id_in();
+	int devid_jockey= find_device_id_jockey();
+	int devid_out= find_device_id_out();
 	const PmDeviceInfo* dev_info = Pm_GetDeviceInfo(devid);
+	const PmDeviceInfo* dev_info_jockey = Pm_GetDeviceInfo(devid_jockey);
 	const PmDeviceInfo* dev_info_out = Pm_GetDeviceInfo(devid_out);
 
 	if(dev_info_out) {
@@ -64,7 +81,9 @@ int keyboard_init(void) {
 	}
 	if(dev_info) {
 		Pm_OpenInput(&midi_stream, devid, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL);
-		return 1;
+	}
+	if(dev_info_jockey) {
+		Pm_OpenInput(&midi_stream_jockey, devid_jockey, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL);
 	}
 	return 0;
 }
@@ -107,6 +126,26 @@ int keyboard_poll(KeyboardEvent* e) {
 	if(pos == len) {
 		pos = 0;
 		len = Pm_Read(midi_stream, events, KEYBOARD_MAX_EVENTS);
+		if(!len) return 0;
+	}
+
+
+	*e = *(KeyboardEvent*) &events[pos++].message;
+
+	return 1;
+}
+
+int jockey_poll(KeyboardEvent* e) {
+
+	if(!midi_stream_jockey) return 0;
+
+	static PmEvent events[KEYBOARD_MAX_EVENTS];
+	static int pos = 0;
+	static int len = 0;
+
+	if(pos == len) {
+		pos = 0;
+		len = Pm_Read(midi_stream_jockey, events, KEYBOARD_MAX_EVENTS);
 		if(!len) return 0;
 	}
 
