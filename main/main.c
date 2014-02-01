@@ -69,13 +69,19 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
-	
+
+
+//	FILE *input;
 	keyboard_init();
-	for(uint8_t i = 32;i <= 39;i++)
+
+/*	input = popen ("../traktorMidiClock/traktorMidiClock", "r");
+	if (!input)
 	{
-		keyboard_send(176,i,0);
+		fprintf (stderr,
+				"incorrect parameters or too many files.\n");
+		return EXIT_FAILURE;
 	}
-	keyboard_send(176,32,127);
+*/
 
 	FT_HANDLE ftHandle; 
 
@@ -99,10 +105,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	} 
 	printf("open ok\n");
 
-		if((ftStatus = FT_SetBaudRate(ftHandle, 250000)) != FT_OK) {
-			printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
-			return 1;
-		}
+	if((ftStatus = FT_SetBaudRate(ftHandle, 250000)) != FT_OK) {
+		printf("Error FT_SetBaudRate(%d)\n", (int)ftStatus);
+		return 1;
+	}
 
 
 	if((ftStatus = FT_SetDataCharacteristics(ftHandle, 
@@ -115,10 +121,17 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 
 
+	for(uint8_t i = 32;i <= 39;i++)
+	{
+		keyboard_send(176,i,0);
+		keyboard_send(176,i+16,0);
+		keyboard_send(176,i+32,0);
+	}
+	keyboard_send(176,32,127);
+
 	srand(time(NULL));
 
 	signal(SIGINT, intHandler);
-	char l  = 0;
 
 	int current_animation = 0;
 	int new_animation = 0;
@@ -135,14 +148,37 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	struct timeval tv;
 
+	uint16_t beat = 0;
+
 	while(running) {
 
 		gettimeofday(&tv,NULL);
 		t1 = tv.tv_usec;
 
-		animations[current_animation].tick_fp();
 
-		l++;	
+		KeyboardEvent e;
+		while(keyboard_poll(&e)) 
+		{
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=32)&&(e.x<40)&&(e.x < 32+animationcount))
+			{
+				new_animation = e.x-32;
+			}
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=48)&&(e.x<56)&&(e.x < 48+animationcount-8))
+			{
+				new_animation = e.x-48+8;
+			}
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=64)&&(e.x<72)&&(e.x < 64+animationcount-16))
+			{
+				new_animation = e.x-64+16;
+			}
+			printf("%d %d %d\n", e.x, e.y, e.type);
+		}
+		//setIn(0,e.y);
+
+		animations[current_animation].tick_fp();
+		tick_count++;
+		beat = 0;
+
 
 		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {
 			printf("Error FT_SetBreakon\n");
@@ -165,6 +201,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			printf("Error FT_Write\n");
 			return 1;
 		}
+		usleep(2000);
+
 
 		gettimeofday(&tv,NULL);
 		t2 = tv.tv_usec;
@@ -180,36 +218,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		{
 			usleep(diff);
 		}
-	
-		KeyboardEvent e;
-		while(keyboard_poll(&e)) 
-		{
-			if((e.type == 176)&&(e.y == 127)&&(e.x>=32)&&(e.x<40)&&(e.x < 32+animationcount))
-			{
-				new_animation = e.x-32;
-			}
-			if((e.type == 176)&&(e.y == 127)&&(e.x>=48)&&(e.x<56)&&(e.x < 48+animationcount-8))
-			{
-				new_animation = e.x-48+8;
-			}
-			if((e.type == 176)&&(e.y == 127)&&(e.x>=64)&&(e.x<72)&&(e.x < 64+animationcount-16))
-			{
-				new_animation = e.x-64+16;
-			}
-			printf("%d %d %d\n", e.x, e.y, e.type);
-		}
-		while(jockey_poll(&e)) 
-		{
-			if((e.type == 176)&&(e.x==55))
-			{
-			printf("set xf to %d\n", e.y);
-				setIn(0,e.y);
-			}
-			printf("jockey: %d %d %d\n", e.x, e.y, e.type);
-		}
 
 
-		tick_count++;
+
+
 
 
 		if((tick_count == animations[current_animation].duration)||(new_animation != current_animation))

@@ -69,9 +69,9 @@ static uint8_t tick(void)
 		setCh(24,0);
 	}
 
-	setCh(2,0);
+		setCh(2,90);
+		setCh(6,90);
 	setCh(3,0);
-	setCh(6,0);
 	setCh(7,0);
 	setCh(19,0);
 	setCh(20,0);
@@ -98,7 +98,7 @@ static void deinit(void)
 
 static void constructor(void) CONSTRUCTOR_ATTRIBUTES
 void constructor(void) {
-	registerAnimation(init,tick,deinit, QUADPHASE,70, 30,1);
+	registerAnimation(init,tick,deinit, QUADPHASE,70, 10,1);
 }
 
 
