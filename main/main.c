@@ -12,8 +12,10 @@
 #include "ftd2xx.h"
 #include "keyboard.h"
 
-static unsigned char ch[512];
-static unsigned char in[512];
+static uint8_t ch[512];
+static uint8_t toggle[5];
+static uint8_t in[512];
+static uint8_t poti[8];
 
 static int running = 1;
 
@@ -70,14 +72,25 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
 
+	keyboard_init();
 
 	for(uint16_t i = 0; i < 512;i++)
 	{
 		ch[i]=0;
 	}
+	
+	for(uint16_t i = 0; i < 5;i++)
+	{
+		toggle[i]=0;
+	}
+	toggle[0]=1;			
+	keyboard_send(176,43,toggle[0]*127);
+	keyboard_send(176,44,toggle[1]*127);
+	keyboard_send(176,42,toggle[2]*127);
+	keyboard_send(176,41,toggle[3]*127);
+	keyboard_send(176,45,toggle[4]*127);
 
 //	FILE *input;
-	keyboard_init();
 
 /*	input = popen ("../traktorMidiClock/traktorMidiClock", "r");
 	if (!input)
@@ -164,6 +177,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		KeyboardEvent e;
 		while(keyboard_poll(&e)) 
 		{
+			if((e.type == 176)&&(e.x>=16)&&(e.x<24))
+			{
+				poti[e.x-16] = e.y;
+			}
 			if((e.type == 176)&&(e.y == 127)&&(e.x>=32)&&(e.x<40)&&(e.x < 32+animationcount))
 			{
 				new_animation = e.x-32;
@@ -178,27 +195,53 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			}
 			if((e.type == 176)&&(e.x==0))
 			{
-				ch[28]=e.y;
+				ch[128]=e.y;
 			}
 			if((e.type == 176)&&(e.x==1))
 			{
-				ch[29]=e.y;
+				ch[129]=e.y;
 			}
 			if((e.type == 176)&&(e.x==2))
 			{
-				ch[30]=e.y;
+				ch[130]=e.y;
 			}
 			if((e.type == 176)&&(e.x==3))
 			{
-				ch[34]=e.y;
+				ch[134]=e.y;
 			}
 			if((e.type == 176)&&(e.x==4))
 			{
-				ch[35]=e.y;
+				ch[135]=e.y;
 			}
 			if((e.type == 176)&&(e.x==5))
 			{
-				ch[36]=e.y;
+				ch[136]=e.y;
+			}
+			
+			if((e.type == 176)&&(e.x==43)&&(e.y==127))
+			{
+				toggle[0] ^= 1;
+				keyboard_send(176,43,toggle[0]*127);
+			}
+			if((e.type == 176)&&(e.x==44)&&(e.y==127))
+			{
+				toggle[1] ^= 1;
+				keyboard_send(176,44,toggle[1]*127);
+			}
+			if((e.type == 176)&&(e.x==42)&&(e.y==127))
+			{
+				toggle[2] ^= 1;
+				keyboard_send(176,42,toggle[2]*127);
+			}
+			if((e.type == 176)&&(e.x==41)&&(e.y==127))
+			{
+				toggle[3] ^= 1;
+				keyboard_send(176,41,toggle[3]*127);
+			}
+			if((e.type == 176)&&(e.x==45)&&(e.y==127))
+			{
+				toggle[4] ^= 1;
+				keyboard_send(176,45,toggle[4]*127);
 			}
 		
 		
@@ -211,6 +254,28 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		beat = 0;
 
 
+		if(toggle[3] == 0)
+		{
+			ch[28] = ch[34]*poti[0];
+			ch[29] = ch[35]*poti[0];
+			ch[30] = ch[36]*poti[0];
+		}else{
+			ch[28] = ch[128];
+			ch[29] = ch[129];
+			ch[30] = ch[130];
+		}
+		if(toggle[4])
+		{
+			ch[34] = ch[134];
+			ch[35] = ch[135];
+			ch[36] = ch[136];
+		}
+		else
+		{
+			ch[34] = ch[34]*poti[1];
+			ch[35] = ch[35]*poti[1];
+			ch[36] = ch[36]*poti[1];
+		}
 		
 
 
@@ -231,7 +296,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		usleep(10);
 
-		if((ftStatus = FT_Write(ftHandle, ch, 64, &BytesWritten)) != FT_OK) {
+		if((ftStatus = FT_Write(ftHandle, ch, 39, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
 			return 1;
 		}
@@ -258,7 +323,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 
 
-		if((tick_count == animations[current_animation].duration)||(new_animation != current_animation))
+		if((((tick_count >= animations[current_animation].duration)&& toggle[0]))||(new_animation != current_animation))
 		{
 			animations[current_animation].deinit_fp();
 

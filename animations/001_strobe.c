@@ -32,7 +32,7 @@ static uint8_t tick(void)
 		setCh(22,255);
 		setCh(23,0);
 		setCh(24,0);
-		setCh(34,60);
+		setCh(34,1);
 		setCh(35,0);
 		setCh(36,0);
 	}
@@ -64,7 +64,7 @@ static uint8_t tick(void)
 		setCh(24,255);
 		setCh(34,0);
 		setCh(35,0);
-		setCh(36,60);
+		setCh(36,1);
 	}
 	if(((a % 80) == 41)||((a % 80) == 51))
 	{

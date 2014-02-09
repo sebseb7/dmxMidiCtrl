@@ -41,7 +41,7 @@ static uint8_t tick(void)
 	{
 		setCh(1,1);
 		setCh(5,1);
-		setCh(34,60);
+		setCh(34,1);
 		setCh(35,0);
 		setCh(36,0);
 
@@ -52,7 +52,7 @@ static uint8_t tick(void)
 		setCh(1,17);
 		setCh(5,17);
 		setCh(34,0);
-		setCh(35,60);
+		setCh(35,1);
 		setCh(36,0);
 
 	}
@@ -62,7 +62,7 @@ static uint8_t tick(void)
 		setCh(5,34);
 		setCh(34,0);
 		setCh(35,0);
-		setCh(36,60);
+		setCh(36,1);
 
 	}
 	setCh(2,20);
