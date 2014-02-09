@@ -21,10 +21,10 @@ int find_device_id_in()
 	{
 		di= Pm_GetDeviceInfo(i);
 		if(!di) break;
-		//if(strstr(di->name, "nanoKONTROL") && di->input)
+		if(strstr(di->name, "nanoKONTROL") && di->input)
 		{
 			printf("found in device '%s' with interf '%s'\n", di->name, di->interf);
-		//	return i;
+			return i;
 		}
 	}
 	return -1;
@@ -37,10 +37,10 @@ int find_device_id_out()
 	{
 		di= Pm_GetDeviceInfo(i);
 		if(!di) break;
-		//if(strstr(di->name, "nanoKONTROL") && di->output)
+		if(strstr(di->name, "nanoKONTROL") && di->output)
 		{
 			printf("found out device '%s' with interf '%s'\n", di->name, di->interf);
-		//	return i;
+			return i;
 		}
 	}
 	return -1;

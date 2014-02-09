@@ -20,18 +20,18 @@ static uint8_t tick(void)
 {
 	b++;
 
-		if((b%3)==0)
-		{
-			a++;
-		}
+	if((b%3)==0)
+	{
+		a++;
+	}
 
 
-		setCh(16,0);
-		setCh(17,0);
-		setCh(18,0);
-		setCh(22,0);
-		setCh(23,0);
-		setCh(24,0);
+	setCh(16,0);
+	setCh(17,0);
+	setCh(18,0);
+	setCh(22,0);
+	setCh(23,0);
+	setCh(24,0);
 
 
 
@@ -41,20 +41,29 @@ static uint8_t tick(void)
 	{
 		setCh(1,1);
 		setCh(5,1);
+		setCh(34,60);
+		setCh(35,0);
+		setCh(36,0);
 
-	
+
 	}
 	if((a % 3) ==1)
 	{
 		setCh(1,17);
 		setCh(5,17);
-		
+		setCh(34,0);
+		setCh(35,60);
+		setCh(36,0);
+
 	}
 	if((a % 3) ==2)
 	{
 		setCh(1,34);
 		setCh(5,34);
-		
+		setCh(34,0);
+		setCh(35,0);
+		setCh(36,60);
+
 	}
 	setCh(2,20);
 	setCh(3,0);
@@ -62,12 +71,12 @@ static uint8_t tick(void)
 	setCh(6,20);
 	setCh(7,0);
 	setCh(8,255);
-	
-	
+
+
 	setCh(19,0);
 	setCh(20,0);
 	setCh(21,0);
-	
+
 	setCh(25,0);
 	setCh(26,0);
 	setCh(27,0);

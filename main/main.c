@@ -71,6 +71,11 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
 
 
+	for(uint16_t i = 0; i < 512;i++)
+	{
+		ch[i]=0;
+	}
+
 //	FILE *input;
 	keyboard_init();
 
@@ -171,6 +176,32 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			{
 				new_animation = e.x-64+16;
 			}
+			if((e.type == 176)&&(e.x==0))
+			{
+				ch[28]=e.y;
+			}
+			if((e.type == 176)&&(e.x==1))
+			{
+				ch[29]=e.y;
+			}
+			if((e.type == 176)&&(e.x==2))
+			{
+				ch[30]=e.y;
+			}
+			if((e.type == 176)&&(e.x==3))
+			{
+				ch[34]=e.y;
+			}
+			if((e.type == 176)&&(e.x==4))
+			{
+				ch[35]=e.y;
+			}
+			if((e.type == 176)&&(e.x==5))
+			{
+				ch[36]=e.y;
+			}
+		
+		
 			printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 		//setIn(0,e.y);
@@ -178,6 +209,9 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		animations[current_animation].tick_fp();
 		tick_count++;
 		beat = 0;
+
+
+		
 
 
 		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {
@@ -197,7 +231,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		usleep(10);
 
-		if((ftStatus = FT_Write(ftHandle, ch, 32, &BytesWritten)) != FT_OK) {
+		if((ftStatus = FT_Write(ftHandle, ch, 64, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
 			return 1;
 		}
