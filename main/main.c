@@ -245,7 +245,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			}
 		
 		
-			printf("%d %d %d\n", e.x, e.y, e.type);
+			//printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 		//setIn(0,e.y);
 
@@ -254,27 +254,29 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		beat = 0;
 
 
-		if(toggle[3] == 0)
-		{
-			ch[28] = ch[34]*poti[0];
-			ch[29] = ch[35]*poti[0];
-			ch[30] = ch[36]*poti[0];
-		}else{
-			ch[28] = ch[128];
-			ch[29] = ch[129];
-			ch[30] = ch[130];
-		}
+
 		if(toggle[4])
 		{
-			ch[34] = ch[134];
-			ch[35] = ch[135];
-			ch[36] = ch[136];
+			ch[34] = ch[134]*2;
+			ch[35] = ch[135]*2;
+			ch[36] = ch[136]*2;
 		}
 		else
 		{
-			ch[34] = ch[34]*poti[1];
-			ch[35] = ch[35]*poti[1];
-			ch[36] = ch[36]*poti[1];
+			ch[34] = ch[234]*poti[1]*2.0f;
+			ch[35] = ch[235]*poti[1]*2.0f;
+			ch[36] = ch[236]*poti[1]*2.0f;
+		}
+		
+		if(toggle[3] == 0)
+		{
+			ch[28] = ch[234]*poti[0]*2.0f;
+			ch[29] = ch[235]*poti[0]*2.0f;
+			ch[30] = ch[236]*poti[0]*2.0f;
+		}else{
+			ch[28] = ch[128]*2;
+			ch[29] = ch[129]*2;
+			ch[30] = ch[130]*2;
 		}
 		
 
@@ -295,6 +297,27 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			return 1;
 		}
 		usleep(10);
+
+/*
+		for(uint16_t i = 1;i < 40 ; i++)
+		{
+			printf("%3i ",ch[i]);
+
+			if(i == 4)
+				printf("| ");
+			if(i == 8)
+				printf("| ");
+			if(i == 15)
+				printf("| ");
+			if(i == 21)
+				printf("| ");
+			if(i == 27)
+				printf("| ");
+			if(i == 33)
+				printf("| ");
+		}
+		printf("\n");
+*/
 
 		if((ftStatus = FT_Write(ftHandle, ch, 39, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");

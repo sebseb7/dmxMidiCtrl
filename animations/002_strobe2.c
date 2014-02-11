@@ -24,17 +24,17 @@ static uint8_t tick(void)
 	{
 		setCh(4,255);
 		setCh(8,255);
-		setCh(34,1);
-		setCh(35,0);
-		setCh(36,0);
+		setCh(234,1);
+		setCh(235,0);
+		setCh(236,0);
 	}
 	if((a % 12) == 1)
 	{
 		setCh(4,0);
 		setCh(8,0);
-		setCh(34,0);
-		setCh(35,0);
-		setCh(36,0);
+		setCh(234,0);
+		setCh(235,0);
+		setCh(236,0);
 	}
 
 	setCh(16,0);

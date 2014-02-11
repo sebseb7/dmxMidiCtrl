@@ -31,9 +31,9 @@ static uint8_t tick(void)
 		setCh(22,0);
 		setCh(23,0);
 		setCh(24,0);
-		setCh(34,1);
-		setCh(35,0);
-		setCh(36,0);
+		setCh(234,1);
+		setCh(235,0);
+		setCh(236,0);
 	}
 	else
 	{
@@ -45,9 +45,9 @@ static uint8_t tick(void)
 		setCh(22,0);
 		setCh(23,0);
 		setCh(24,0);
-		setCh(34,0);
-		setCh(35,0);
-		setCh(36,1);
+		setCh(234,0);
+		setCh(235,0);
+		setCh(236,1);
 	}
 	if((((a+1)>>1) % 2) == 0)
 	{
