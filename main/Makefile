@@ -17,7 +17,7 @@ clean:
 	rm -f dmxMidiCtrl
 
 dmxMidiCtrl: $(SOURCES) $(LIB_SOURCES) $(LIB_HEADERS) main.c main.h Makefile 
-	@echo -e "  \033[1;34mCompile\033[0m"
+	@echo "  \033[1;34mCompile\033[0m"
 	@$(COMPILER) main.c $(LDFLAGS) -o dmxMidiCtrl -I. -I../libs $(FLAGS) $(LIB_SOURCES) $(SOURCES)   
 
 .PHONY : clean all

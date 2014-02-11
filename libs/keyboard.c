@@ -14,7 +14,7 @@ enum {
 static PortMidiStream* midi_stream = NULL;
 static PortMidiStream* midi_stream_out = NULL;
 
-int find_device_id_in()
+int find_device_id_in(void)
 {
 	const PmDeviceInfo *di;
 	for(int i= 0; ; i++)
@@ -30,7 +30,7 @@ int find_device_id_in()
 	return -1;
 }
 
-int find_device_id_out()
+int find_device_id_out(void)
 {
 	const PmDeviceInfo *di;
 	for(int i= 0; ; i++)

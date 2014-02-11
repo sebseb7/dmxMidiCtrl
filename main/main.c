@@ -166,8 +166,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	struct timeval tv;
 
-	uint16_t beat = 0;
-
 	while(running) {
 
 		gettimeofday(&tv,NULL);
@@ -251,7 +249,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 		animations[current_animation].tick_fp();
 		tick_count++;
-		beat = 0;
 
 
 
