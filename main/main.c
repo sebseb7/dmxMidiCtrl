@@ -9,7 +9,11 @@
 #include <string.h>
 #include<sys/time.h>
 
-#include "ftd2xx.h"
+#ifdef LIBFTDI
+	#include "libftdi1/ftdi.h"
+#elif
+	#include "ftd2xx.h"
+#endif
 #include "keyboard.h"
 
 static uint8_t ch[512];
@@ -101,6 +105,47 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	}
 */
 
+#ifdef LIBFTDI
+
+	int ret;
+	struct ftdi_context *ftdi;
+	struct ftdi_version_info version;
+	if ((ftdi = ftdi_new()) == 0)
+	{
+		fprintf(stderr, "ftdi_new failed\n");
+		return EXIT_FAILURE;
+	}
+	version = ftdi_get_library_version();
+	printf("Initialized libftdi %s (major: %d, minor: %d, micro: %d, snapshot ver: %s)\n",
+			version.version_str, version.major, version.minor, version.micro,
+			version.snapshot_str);
+	if ((ret = ftdi_usb_open(ftdi, 0x0403, 0x6001)) < 0)
+	{
+		fprintf(stderr, "unable to open ftdi device: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+		ftdi_free(ftdi);
+		return EXIT_FAILURE;
+	}
+	// Read out FTDIChip-ID of R type chips
+	if (ftdi->type == TYPE_R)
+	{
+		unsigned int chipid;
+		printf("ftdi_read_chipid: %d\n", ftdi_read_chipid(ftdi, &chipid));
+		printf("FTDI chipid: %X\n", chipid);
+	}
+	ret = ftdi_set_line_property(ftdi, 8, STOP_BIT_2, NONE);
+	if (ret < 0)
+	{
+		fprintf(stderr, "unable to set line parameters: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+		exit(-1);
+	}
+	ret = ftdi_set_baudrate(ftdi, 250000);
+	if (ret < 0)
+	{
+		fprintf(stderr, "unable to set baudrate: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+		exit(-1);
+	}
+#elif
+
 	FT_HANDLE ftHandle; 
 
 	FT_STATUS ftStatus; 
@@ -137,7 +182,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		return 1;
 	}
 
-
+#endif
 
 	for(uint8_t i = 32;i <= 39;i++)
 	{
@@ -217,7 +262,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			{
 				ch[136]=e.y;
 			}
-			
+
 			if((e.type == 176)&&(e.x==43)&&(e.y==127))
 			{
 				toggle[0] ^= 1;
@@ -243,8 +288,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				toggle[4] ^= 1;
 				keyboard_send(176,45,toggle[4]*127);
 			}
-		
-		
+
+
 			//printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 		//setIn(0,e.y);
@@ -267,7 +312,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			ch[35] = ch[235]*poti[1]*2.0f;
 			ch[36] = ch[236]*poti[1]*2.0f;
 		}
-		
+
 		if(toggle[3] == 0)
 		{
 			ch[28] = ch[234]*poti[0]*2.0f;
@@ -278,9 +323,38 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			ch[29] = ch[129]*2;
 			ch[30] = ch[130]*2;
 		}
-		
 
 
+#ifdef LIBFTDI
+		ret = ftdi_set_line_property2(ftdi, 8, STOP_BIT_2, NONE,BREAK_ON);
+		if (ret < 0)
+		{
+			fprintf(stderr, "unable to set line parameters: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+			exit(-1);
+		}
+		usleep(100);
+		ret = ftdi_set_line_property2(ftdi, 8, STOP_BIT_2, NONE,BREAK_OFF);
+		if (ret < 0)
+		{
+			fprintf(stderr, "unable to set line parameters: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+			exit(-1);
+		}
+		unsigned char c=0;
+
+		ret = ftdi_write_data(ftdi, &c, 0);
+		if (ret < 0)
+		{
+			fprintf(stderr,"write failed , error %d (%s)\n",ret, ftdi_get_error_string(ftdi));
+		}
+		usleep(10);
+
+		ret = ftdi_write_data(ftdi, ch, 39);
+		if (ret < 0)
+		{
+			fprintf(stderr,"write failed , error %d (%s)\n",ret, ftdi_get_error_string(ftdi));
+		}
+		usleep(2000);
+#elif
 		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {
 			printf("Error FT_SetBreakon\n");
 			return 1;
@@ -298,26 +372,26 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		usleep(10);
 
-/*
-		for(uint16_t i = 1;i < 40 ; i++)
-		{
-			printf("%3i ",ch[i]);
+		/*
+		   for(uint16_t i = 1;i < 40 ; i++)
+		   {
+		   printf("%3i ",ch[i]);
 
-			if(i == 4)
-				printf("| ");
-			if(i == 8)
-				printf("| ");
-			if(i == 15)
-				printf("| ");
-			if(i == 21)
-				printf("| ");
-			if(i == 27)
-				printf("| ");
-			if(i == 33)
-				printf("| ");
-		}
-		printf("\n");
-*/
+		   if(i == 4)
+		   printf("| ");
+		   if(i == 8)
+		   printf("| ");
+		   if(i == 15)
+		   printf("| ");
+		   if(i == 21)
+		   printf("| ");
+		   if(i == 27)
+		   printf("| ");
+		   if(i == 33)
+		   printf("| ");
+		   }
+		   printf("\n");
+		   */
 
 		if((ftStatus = FT_Write(ftHandle, ch, 39, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
@@ -325,7 +399,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		usleep(2000);
 
-
+#endif
 		gettimeofday(&tv,NULL);
 		t2 = tv.tv_usec;
 
@@ -388,7 +462,17 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 	}
 	printf("exiting\n");
+#ifdef LIBFTDI
+	if ((ret = ftdi_usb_close(ftdi)) < 0)
+	{
+		fprintf(stderr, "unable to close ftdi device: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+		ftdi_free(ftdi);
+		return EXIT_FAILURE;
+	}
+	ftdi_free(ftdi);
+#elif
 	FT_Close(ftHandle); 
+#endif
 
 	return 0;
 }
