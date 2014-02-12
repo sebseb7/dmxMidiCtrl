@@ -83,11 +83,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		ch[i]=0;
 	}
 	
-	for(uint16_t i = 0; i < 5;i++)
-	{
-		toggle[i]=0;
-	}
 	toggle[0]=1;			
+	toggle[1]=1;			
+	toggle[2]=1;			
+	toggle[3]=1;			
+	toggle[4]=1;			
 	keyboard_send(176,43,toggle[0]*127);
 	keyboard_send(176,44,toggle[1]*127);
 	keyboard_send(176,42,toggle[2]*127);
@@ -320,8 +320,22 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			ch[29] = ch[129]*2;
 			ch[30] = ch[130]*2;
 		}
-
-
+		if(toggle[2]==0)
+		{
+			ch[16]=0;
+			ch[17]=0;
+			ch[18]=0;
+			ch[22]=0;
+			ch[23]=0;
+			ch[24]=0;
+		}
+		if(toggle[1]==0)
+		{
+			ch[2]=0;
+			ch[6]=0;
+			ch[4]=0;
+			ch[8]=0;
+		}
 #ifdef LIBFTDI
 		ret = ftdi_set_line_property2(ftdi, 8, STOP_BIT_2, NONE,BREAK_ON);
 		if (ret < 0)
