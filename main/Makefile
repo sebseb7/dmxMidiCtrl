@@ -4,7 +4,7 @@ COMPILER = gcc
 
 
 FLAGS= -I. -I../firmware --std=gnu99 -Wall  -funsigned-char -Wundef -Wsign-compare  -Wstrict-prototypes  -Wextra -L. -lportmidi 
-FLAGS+= -DLIBFTDI=1 -lftdi1
+FLAGS+= -DLIBFTDI=1 -lftdi1 -Wl,-rpath /usr/local/lib
 #FLAGS+= -lftd2xx -Wl,-rpath /usr/local/lib
 LDFLAGS=
 
