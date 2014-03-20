@@ -3,10 +3,10 @@ UNAME := $(shell uname)
 COMPILER = gcc
 
 
-FLAGS= -I. -I../firmware --std=gnu99 -Wall  -funsigned-char -Wundef -Wsign-compare  -Wstrict-prototypes  -Wextra -L. -lportmidi 
-FLAGS+= -DLIBFTDI=1 -lftdi1
+FLAGS= -I. -I../firmware --std=gnu99 -Wall  -funsigned-char -Wundef -Wsign-compare  -Wstrict-prototypes  -Wextra -L. 
+FLAGS+= -DLIBFTDI=1 
 #FLAGS+= -lftd2xx -Wl,-rpath /usr/local/lib
-LDFLAGS=
+LDFLAGS= -lportmidi -lftdi1 
 
 SOURCES=$(wildcard ../animations/*.c)
 
@@ -20,7 +20,7 @@ clean:
 
 dmxMidiCtrl: $(SOURCES) $(LIB_SOURCES) $(LIB_HEADERS) main.c main.h Makefile 
 	@echo "  \033[1;34mCompile\033[0m"
-	@$(COMPILER) main.c $(LDFLAGS) -o dmxMidiCtrl -I. -I../libs $(FLAGS) $(LIB_SOURCES) $(SOURCES)   
+	@$(COMPILER) main.c  -o dmxMidiCtrl -I. -I../libs $(FLAGS) $(LIB_SOURCES) $(SOURCES) $(LDFLAGS) 
 
 .PHONY : clean all
 
