@@ -4,6 +4,7 @@
 #include	<string.h>
 #include	<portmidi.h>
 #include	"keyboard.h"
+#include	"main.h"
 
 enum {
 	KEYBOARD_DEV_ID		= 0,
@@ -21,7 +22,11 @@ int find_device_id_in(void)
 	{
 		di= Pm_GetDeviceInfo(i);
 		if(!di) break;
+#ifdef KTRL_F1		
+		if(strstr(di->name, "Traktor Kontrol F1") && di->input)
+#elif
 		if(strstr(di->name, "nanoKONTROL") && di->input)
+#endif
 		{
 			printf("found in device '%s' with interf '%s'\n", di->name, di->interf);
 			return i;
@@ -37,7 +42,11 @@ int find_device_id_out(void)
 	{
 		di= Pm_GetDeviceInfo(i);
 		if(!di) break;
+#ifdef KTRL_F1		
+		if(strstr(di->name, "Traktor Kontrol F1") && di->output)
+#elif
 		if(strstr(di->name, "nanoKONTROL") && di->output)
+#endif
 		{
 			printf("found out device '%s' with interf '%s'\n", di->name, di->interf);
 			return i;
