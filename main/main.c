@@ -42,6 +42,47 @@ struct animation {
 	uint32_t idle;
 } animations[MAX_ANIMATIONS];
 
+void rgb2hsv(int r, int g, int b, double *hr, double *sr, double *vr)
+{
+	double rd, gd, bd, h, s, v, max, min, del, rc, gc, bc;
+
+	/* convert RGB to HSV */
+	rd = r / 127.0;            /* rd,gd,bd range 0-1 instead of 0-255 */
+	gd = g / 127.0;
+	bd = b / 127.0;
+
+	/* compute maximum of rd,gd,bd */
+	if (rd>=gd) { if (rd>=bd) max = rd;  else max = bd; }
+	else { if (gd>=bd) max = gd;  else max = bd; }
+
+	/* compute minimum of rd,gd,bd */
+	if (rd<=gd) { if (rd<=bd) min = rd;  else min = bd; }
+	else { if (gd<=bd) min = gd;  else min = bd; }
+
+	del = max - min;
+	v = max;
+	if (max != 0.0) s = (del) / max;
+	else s = 0.0;
+
+	h = 0;
+	if (s != 0.0) {
+		rc = (max - rd) / del;
+		gc = (max - gd) / del;
+		bc = (max - bd) / del;
+
+		if      (rd==max) h = bc - gc;
+		else if (gd==max) h = 2 + rc - bc;
+		else if (bd==max) h = 4 + gc - rc;
+
+		h = h * 60;
+		if (h<0) h += 360;
+	}
+
+	printf("HSV %f %f %f\n",h,s,v);
+
+	*hr = h;  *sr = s;  *vr = v;
+}
+
 
 void setCh(uint8_t chan, uint8_t value)
 {
@@ -75,43 +116,62 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
+		
+//		if(strstr(di->name, "nanoKONTROL") && di->input)
+	
+//	MidiObj midi_korg;
+#ifdef KTRL_F1
+	MidiObj midi_f1;
+	keyboard_init(&midi_f1,"Traktor Kontrol F1");
+#endif
+#ifdef TOUCH_OSC
+	MidiObj midi_touch;
+	keyboard_init(&midi_touch,"TouchOSC Bridge");
+#endif
 
-	keyboard_init();
+
+//	keyboard_init(midi_korg);
 
 	for(uint16_t i = 0; i < 512;i++)
 	{
 		ch[i]=0;
 	}
-	
+
 	toggle[0]=1;			
 	toggle[1]=1;			
 	toggle[2]=1;			
 	toggle[3]=1;			
 	toggle[4]=1;			
 #ifdef KTRL_F1
-	keyboard_send(188,37,toggle[0]*127);
-	keyboard_send(188,38,toggle[1]*127);
-	keyboard_send(188,39,toggle[2]*127);
-	keyboard_send(188,40,toggle[3]*127);
-	keyboard_send(188,12,toggle[4]*127);
+	keyboard_send(&midi_f1,188,37,toggle[0]*127);
+	keyboard_send(&midi_f1,188,38,toggle[1]*127);
+	keyboard_send(&midi_f1,188,39,toggle[2]*127);
+	keyboard_send(&midi_f1,188,40,toggle[3]*127);
+	keyboard_send(&midi_f1,188,12,toggle[4]*127);
 #else
-	keyboard_send(176,43,toggle[0]*127);
-	keyboard_send(176,44,toggle[1]*127);
-	keyboard_send(176,42,toggle[2]*127);
-	keyboard_send(176,41,toggle[3]*127);
-	keyboard_send(176,45,toggle[4]*127);
+	keyboard_send(&midi_korg,176,43,toggle[0]*127);
+	keyboard_send(&midi_korg,176,44,toggle[1]*127);
+	keyboard_send(&midi_korg,176,42,toggle[2]*127);
+	keyboard_send(&midi_korg,176,41,toggle[3]*127);
+	keyboard_send(&midi_korg,176,45,toggle[4]*127);
 #endif
+#ifdef TOUCH_OSC
+	keyboard_send(&midi_touch,176,43,toggle[0]*127);
+	keyboard_send(&midi_touch,176,44,toggle[1]*127);
+	keyboard_send(&midi_touch,176,42,toggle[2]*127);
+	keyboard_send(&midi_touch,176,41,toggle[3]*127);
+	keyboard_send(&midi_touch,176,45,toggle[4]*127);
+#endif
+	//	FILE *input;
 
-//	FILE *input;
-
-/*	input = popen ("../traktorMidiClock/traktorMidiClock", "r");
-	if (!input)
-	{
+	/*	input = popen ("../traktorMidiClock/traktorMidiClock", "r");
+		if (!input)
+		{
 		fprintf (stderr,
-				"incorrect parameters or too many files.\n");
+		"incorrect parameters or too many files.\n");
 		return EXIT_FAILURE;
-	}
-*/
+		}
+		*/
 
 #ifdef LIBFTDI
 
@@ -196,21 +256,21 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	printf("dd\n");
 	for(uint8_t i = 0;i <= 16;i++)
 	{
-		keyboard_send(176,i+20,1); // HUE
-		keyboard_send(177,i+20,127); // SAT
-		keyboard_send(178,i+20,0); // BRI
+		keyboard_send(&midi_f1,176,i+20,1); // HUE
+		keyboard_send(&midi_f1,177,i+20,127); // SAT
+		keyboard_send(&midi_f1,178,i+20,0); // BRI
 	}
-	keyboard_send(176,20,1);
-	keyboard_send(177,20,127);
-	keyboard_send(178,20,127);
+	keyboard_send(&midi_f1,176,20,1);
+	keyboard_send(&midi_f1,177,20,127);
+	keyboard_send(&midi_f1,178,20,127);
 #elif
 	for(uint8_t i = 32;i <= 39;i++)
 	{
-		keyboard_send(176,i,0);
-		keyboard_send(176,i+16,0);
-		keyboard_send(176,i+32,0);
+		keyboard_send(&midi_korg,176,i,0);
+		keyboard_send(&midi_korg,176,i+16,0);
+		keyboard_send(&midi_korg,176,i+32,0);
 	}
-	keyboard_send(176,32,127);
+	keyboard_send(&midi_korg,176,32,127);
 #endif
 	srand(time(NULL));
 
@@ -240,12 +300,65 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 
 		KeyboardEvent e;
+#ifdef TOUCH_OSC
+		while(keyboard_poll(&midi_touch,&e)) 
+		{
+			if((e.type == 176)&&(e.x==43)&&(e.y==127))
+			{
+				toggle[0] ^= 1;
+				keyboard_send(&midi_f1,188,12,toggle[0]*127);
+				//keyboard_send(&midi_korg,176,43,toggle[0]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,43,toggle[0]*127);
+#endif
+			}
+			if((e.type == 176)&&(e.x==44)&&(e.y==127))
+			{
+				toggle[1] ^= 1;
+				keyboard_send(&midi_f1,188,37,toggle[1]*127);
+				//keyboard_send(&midi_korg,176,44,toggle[1]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,44,toggle[1]*127);
+#endif
+			}
+			if((e.type == 176)&&(e.x==42)&&(e.y==127))
+			{
+				toggle[2] ^= 1;
+				keyboard_send(&midi_f1,188,38,toggle[2]*127);
+				//keyboard_send(&midi_korg,176,42,toggle[2]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,42,toggle[2]*127);
+#endif
+			}
+			if((e.type == 176)&&(e.x==41)&&(e.y==127))
+			{
+				toggle[3] ^= 1;
+				keyboard_send(&midi_f1,188,39,toggle[3]*127);
+				//keyboard_send(&midi_korg,176,41,toggle[3]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,41,toggle[3]*127);
+#endif
+			}
+			if((e.type == 176)&&(e.x==45)&&(e.y==127))
+			{
+				toggle[4] ^= 1;
+				keyboard_send(&midi_f1,188,40,toggle[4]*127);
+				//keyboard_send(&midi_korg,176,45,toggle[4]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,45,toggle[4]*127);
+#endif
+			}
+			
+			printf("%d %d %d\n", e.x, e.y, e.type);
+		}
+#endif
 #ifdef KTRL_F1
-		while(keyboard_poll(&e)) 
+		while(keyboard_poll(&midi_f1,&e)) 
 		{
 			if((e.type == 188)&&(e.x>=2)&&(e.x<6))
 			{
 				poti[e.x-2] = e.y;
+		
 			}
 			if((e.type == 188)&&(e.y == 127)&&(e.x>=20)&&(e.x<36)&&(e.x < 20+animationcount))
 			{
@@ -254,14 +367,29 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 188)&&(e.x==6))
 			{
 				ch[128]=e.y;
+				double h,s,v;
+				rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
+				keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
+				keyboard_send(&midi_f1,177,35,s*127.0f);
+				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
 			if((e.type == 188)&&(e.x==7))
 			{
 				ch[129]=e.y;
+				double h,s,v;
+				rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
+				keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
+				keyboard_send(&midi_f1,177,35,s*127.0f);
+				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
 			if((e.type == 188)&&(e.x==8))
 			{
 				ch[130]=e.y;
+				double h,s,v;
+				rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
+				keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
+				keyboard_send(&midi_f1,177,35,s*127.0f);
+				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
 			if((e.type == 188)&&(e.x==47))
 			{
@@ -279,34 +407,49 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 188)&&(e.x==12)&&(e.y==127))
 			{
 				toggle[0] ^= 1;
-				keyboard_send(188,12,toggle[0]*127);
+				keyboard_send(&midi_f1,188,12,toggle[0]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,43,toggle[0]*127);
+#endif
 			}
 			if((e.type == 188)&&(e.x==37)&&(e.y==127))
 			{
 				toggle[1] ^= 1;
-				keyboard_send(188,37,toggle[1]*127);
+				keyboard_send(&midi_f1,188,37,toggle[1]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,44,toggle[1]*127);
+#endif
 			}
 			if((e.type == 188)&&(e.x==38)&&(e.y==127))
 			{
 				toggle[2] ^= 1;
-				keyboard_send(188,38,toggle[2]*127);
+				keyboard_send(&midi_f1,188,38,toggle[2]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,42,toggle[2]*127);
+#endif
 			}
 			if((e.type == 188)&&(e.x==39)&&(e.y==127))
 			{
 				toggle[3] ^= 1;
-				keyboard_send(188,39,toggle[3]*127);
+				keyboard_send(&midi_f1,188,39,toggle[3]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,41,toggle[3]*127);
+#endif
 			}
 			if((e.type == 188)&&(e.x==40)&&(e.y==127))
 			{
 				toggle[4] ^= 1;
-				keyboard_send(188,40,toggle[4]*127);
+				keyboard_send(&midi_f1,188,40,toggle[4]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,45,toggle[4]*127);
+#endif
 			}
 
 
 			printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 #else
-		while(keyboard_poll(&e)) 
+		while(keyboard_poll(&midi_korg,&e)) 
 		{
 			if((e.type == 176)&&(e.x>=16)&&(e.x<24))
 			{
@@ -352,27 +495,42 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 176)&&(e.x==43)&&(e.y==127))
 			{
 				toggle[0] ^= 1;
-				keyboard_send(176,43,toggle[0]*127);
+				keyboard_send(&midi_korg,176,43,toggle[0]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,43,toggle[0]*127);
+#endif
 			}
 			if((e.type == 176)&&(e.x==44)&&(e.y==127))
 			{
 				toggle[1] ^= 1;
-				keyboard_send(176,44,toggle[1]*127);
+				keyboard_send(&midi_korg,176,44,toggle[1]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,44,toggle[1]*127);
+#endif
 			}
 			if((e.type == 176)&&(e.x==42)&&(e.y==127))
 			{
 				toggle[2] ^= 1;
-				keyboard_send(176,42,toggle[2]*127);
+				keyboard_send(&midi_korg,176,42,toggle[2]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,42,toggle[2]*127);
+#endif
 			}
 			if((e.type == 176)&&(e.x==41)&&(e.y==127))
 			{
 				toggle[3] ^= 1;
-				keyboard_send(176,41,toggle[3]*127);
+				keyboard_send(&midi_korg,176,41,toggle[3]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,41,toggle[3]*127);
+#endif
 			}
 			if((e.type == 176)&&(e.x==45)&&(e.y==127))
 			{
 				toggle[4] ^= 1;
-				keyboard_send(176,45,toggle[4]*127);
+				keyboard_send(&midi_korg,176,45,toggle[4]*127);
+#ifdef TOUCH_OSC
+				keyboard_send(&midi_touch,176,45,toggle[4]*127);
+#endif
 			}
 		}
 #endif
@@ -523,17 +681,17 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			animations[current_animation].deinit_fp();
 
 #ifdef KTRL_F1
-			keyboard_send(176,20+(current_animation),0);
-			keyboard_send(177,20+(current_animation),0);
-			keyboard_send(178,20+(current_animation),0);
+			keyboard_send(&midi_f1,176,20+(current_animation),0);
+			keyboard_send(&midi_f1,177,20+(current_animation),0);
+			keyboard_send(&midi_f1,178,20+(current_animation),0);
 #else
 			if(current_animation < 8)
 			{
-				keyboard_send(176,32+current_animation,0);
+				keyboard_send(&midi_korg,176,32+current_animation,0);
 			}
 			else if(current_animation < 16)
 			{
-				keyboard_send(176,48+(current_animation-8),0);
+				keyboard_send(&midi_korg,176,48+(current_animation-8),0);
 			}
 #endif
 
@@ -551,17 +709,17 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				new_animation= current_animation;
 			}
 #ifdef KTRL_F1
-			keyboard_send(176,20+(current_animation),1);
-			keyboard_send(177,20+(current_animation),127);
-			keyboard_send(178,20+(current_animation),127);
+			keyboard_send(&midi_f1,176,20+(current_animation),1);
+			keyboard_send(&midi_f1,177,20+(current_animation),127);
+			keyboard_send(&midi_f1,178,20+(current_animation),127);
 #else
 			if(current_animation < 8)
 			{
-				keyboard_send(176,32+current_animation,127);
+				keyboard_send(&midi_korg,176,32+current_animation,127);
 			}
 			else if(current_animation < 16)
 			{
-				keyboard_send(176,48+(current_animation-8),127);
+				keyboard_send(&midi_korg,176,48+(current_animation-8),127);
 			}
 #endif
 			tick_count=0;

@@ -2,7 +2,6 @@
 
 #include	<stdio.h>
 #include	<string.h>
-#include	<portmidi.h>
 #include	"keyboard.h"
 #include	"main.h"
 
@@ -12,21 +11,16 @@ enum {
 };
 
 
-static PortMidiStream* midi_stream = NULL;
-static PortMidiStream* midi_stream_out = NULL;
+static int initialized = 0;
 
-int find_device_id_in(void)
+static int find_device_id_in(char* name)
 {
 	const PmDeviceInfo *di;
 	for(int i= 0; ; i++)
 	{
 		di= Pm_GetDeviceInfo(i);
 		if(!di) break;
-#ifdef KTRL_F1		
-		if(strstr(di->name, "Traktor Kontrol F1") && di->input)
-#elif
-		if(strstr(di->name, "nanoKONTROL") && di->input)
-#endif
+		if(strstr(di->name, name) && di->input)
 		{
 			printf("found in device '%s' with interf '%s'\n", di->name, di->interf);
 			return i;
@@ -35,18 +29,14 @@ int find_device_id_in(void)
 	return -1;
 }
 
-int find_device_id_out(void)
+static int find_device_id_out(char* name)
 {
 	const PmDeviceInfo *di;
 	for(int i= 0; ; i++)
 	{
 		di= Pm_GetDeviceInfo(i);
 		if(!di) break;
-#ifdef KTRL_F1		
-		if(strstr(di->name, "Traktor Kontrol F1") && di->output)
-#elif
-		if(strstr(di->name, "nanoKONTROL") && di->output)
-#endif
+		if(strstr(di->name, name) && di->output)
 		{
 			printf("found out device '%s' with interf '%s'\n", di->name, di->interf);
 			return i;
@@ -55,56 +45,63 @@ int find_device_id_out(void)
 	return -1;
 }
 
-int keyboard_init(void) {
-
+int keyboard_init(MidiObj* m,char* name) {
+		
+	m->midi_stream_out = NULL;
+	m->midi_stream = NULL;
+	
 	// open midi device
-	Pm_Initialize();
+	if(! initialized)
+	{
+		Pm_Initialize();
+		initialized=1;
+	}
 
 	//~ const PmDeviceInfo* dev_info = Pm_GetDeviceInfo(KEYBOARD_DEV_ID);
-	int devid= find_device_id_in();
-	int devid_out= find_device_id_out();
+	int devid= find_device_id_in(name);
+	int devid_out= find_device_id_out(name);
 	const PmDeviceInfo* dev_info = Pm_GetDeviceInfo(devid);
 	const PmDeviceInfo* dev_info_out = Pm_GetDeviceInfo(devid_out);
 
 	if(dev_info_out) {
-		Pm_OpenOutput(&midi_stream_out, devid_out, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL,0);
+		Pm_OpenOutput(&(m->midi_stream_out), devid_out, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL,0);
 	}
 	if(dev_info) {
-		Pm_OpenInput(&midi_stream, devid, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL);
+		Pm_OpenInput(&(m->midi_stream), devid, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL);
 	}
 	return 0;
 }
 
-void keyboard_kill(void) {
-	if(midi_stream_out) {
-		Pm_Close(midi_stream_out);
-		midi_stream_out = NULL;
+void keyboard_kill(MidiObj* m) {
+	if(m->midi_stream_out) {
+		Pm_Close(m->midi_stream_out);
+		m->midi_stream_out = NULL;
 	}
-	if(midi_stream) {
-		Pm_Close(midi_stream);
-		midi_stream = NULL;
+	if(m->midi_stream) {
+		Pm_Close(m->midi_stream);
+		m->midi_stream = NULL;
 	}
-	Pm_Terminate();
+	//Pm_Terminate();
 }
 
-int keyboard_send(uint8_t a,uint8_t b , uint8_t c) {
+int keyboard_send(MidiObj* m,uint8_t a,uint8_t b , uint8_t c) {
 
-	if(!midi_stream_out) return 0;
+	if(!m->midi_stream_out) return 0;
 
 	static PmEvent events[KEYBOARD_MAX_EVENTS];
 
 	events[0].timestamp =  0;
 	events[0].message = Pm_Message( a,b,c );
 
-	int i = Pm_Write(midi_stream_out, events, 1);
+	int i = Pm_Write(m->midi_stream_out, events, 1);
 
 	return i;
 }
 
 
-int keyboard_poll(KeyboardEvent* e) {
+int keyboard_poll(MidiObj* m,KeyboardEvent* e) {
 
-	if(!midi_stream) return 0;
+	if(!m->midi_stream) return 0;
 
 	static PmEvent events[KEYBOARD_MAX_EVENTS];
 	static int pos = 0;
@@ -112,7 +109,7 @@ int keyboard_poll(KeyboardEvent* e) {
 
 	if(pos == len) {
 		pos = 0;
-		len = Pm_Read(midi_stream, events, KEYBOARD_MAX_EVENTS);
+		len = Pm_Read(m->midi_stream, events, KEYBOARD_MAX_EVENTS);
 		if(!len) return 0;
 	}
 

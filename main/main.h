@@ -6,6 +6,9 @@
 #define CONSTRUCTOR_ATTRIBUTES	__attribute__((constructor));
 
 #define KTRL_F1
+#define TOUCH_OSC
+#define KORG_CTRL
+
 enum {
 	PAR36 = 1,
 	PAR36_UV = 2,
