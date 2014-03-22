@@ -78,7 +78,7 @@ void rgb2hsv(int r, int g, int b, double *hr, double *sr, double *vr)
 		if (h<0) h += 360;
 	}
 
-	printf("HSV %f %f %f\n",h,s,v);
+	//printf("HSV %f %f %f\n",h,s,v);
 
 	*hr = h;  *sr = s;  *vr = v;
 }
@@ -253,7 +253,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 #endif
 
 #ifdef KTRL_F1
-	printf("dd\n");
 	for(uint8_t i = 0;i <= 16;i++)
 	{
 		keyboard_send(&midi_f1,176,i+20,1); // HUE
@@ -289,14 +288,12 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	int tick_count = 0;
 
-	unsigned long long t1, t2;
+	unsigned long long last_frame;
 
 	struct timeval tv;
 
 	while(running) {
 
-		gettimeofday(&tv,NULL);
-		t1 = tv.tv_usec;
 
 
 		KeyboardEvent e;
@@ -349,7 +346,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 #endif
 			}
 			
-			printf("%d %d %d\n", e.x, e.y, e.type);
+			//printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 #endif
 #ifdef KTRL_F1
@@ -534,14 +531,31 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			}
 		}
 #endif
-		//setIn(0,e.y);
-
-		animations[current_animation].tick_fp();
-		tick_count++;
 
 
+		unsigned long long current_time;
+		int32_t time_diff;
+		gettimeofday(&tv,NULL);
+		current_time = tv.tv_usec;
+		time_diff = current_time - last_frame;
 
-		if(toggle[4])
+		if(time_diff < 0 )
+		{
+			time_diff+=1000000;
+		}
+
+		if((uint32_t)time_diff > animations[current_animation].timing)
+		{
+			time_diff -= animations[current_animation].timing;
+			animations[current_animation].tick_fp();
+			tick_count++;
+			gettimeofday(&tv,NULL);
+			last_frame = tv.tv_usec - time_diff;
+		}
+
+
+
+		if(toggle[3])
 		{
 			ch[34] = ch[134]*2;
 			ch[35] = ch[135]*2;
@@ -554,7 +568,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			ch[36] = ch[236]*poti[1]*2.0f;
 		}
 
-		if(toggle[3] == 0)
+		if(toggle[4] == 0)
 		{
 			ch[28] = ch[234]*poti[0]*2.0f;
 			ch[29] = ch[235]*poti[0]*2.0f;
@@ -655,25 +669,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		usleep(2000);
 
 #endif
-		gettimeofday(&tv,NULL);
-		t2 = tv.tv_usec;
-
-		int32_t diff = t2-t1;
-		if(diff < 0 )
-		{
-			diff+=1000000;
-		}
-		diff = animations[current_animation].timing-diff;
-
-		if(diff > 0)
-		{
-			//usleep(diff*(poti[2]/ 64.0f));
-			usleep(diff);
-		}
-
-
-
-
 
 
 		if((((tick_count >= animations[current_animation].duration)&& toggle[0]))||(new_animation != current_animation))

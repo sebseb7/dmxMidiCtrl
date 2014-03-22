@@ -6,7 +6,6 @@
 #include	"main.h"
 
 enum {
-	KEYBOARD_DEV_ID		= 0,
 	KEYBOARD_MAX_EVENTS = 256,
 };
 
@@ -57,7 +56,6 @@ int keyboard_init(MidiObj* m,char* name) {
 		initialized=1;
 	}
 
-	//~ const PmDeviceInfo* dev_info = Pm_GetDeviceInfo(KEYBOARD_DEV_ID);
 	int devid= find_device_id_in(name);
 	int devid_out= find_device_id_out(name);
 	const PmDeviceInfo* dev_info = Pm_GetDeviceInfo(devid);
@@ -68,6 +66,7 @@ int keyboard_init(MidiObj* m,char* name) {
 	}
 	if(dev_info) {
 		Pm_OpenInput(&(m->midi_stream), devid, NULL, KEYBOARD_MAX_EVENTS, NULL, NULL);
+		return 1;
 	}
 	return 0;
 }
