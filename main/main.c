@@ -585,6 +585,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			tick_count++;
 			gettimeofday(&tv,NULL);
 			last_frame = tv.tv_usec - time_diff;
+	
+			uint32_t rest_ticks = ((animations[current_animation].duration-tick_count)/ ((1.0f/animations[current_animation].timing)*1000000.0f));
+
+			keyboard_send(&midi_f1,188,80,rest_ticks+1);
 		}
 
 
@@ -597,16 +601,16 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		else
 		{
-			ch[34] = ch[234]*poti[1]*2.0f;
-			ch[35] = ch[235]*poti[1]*2.0f;
-			ch[36] = ch[236]*poti[1]*2.0f;
+			ch[34] = ch[234]*poti[0]*2.0f;
+			ch[35] = ch[235]*poti[0]*2.0f;
+			ch[36] = ch[236]*poti[0]*2.0f;
 		}
 
 		if(toggle[4] == 0)
 		{
-			ch[28] = ch[234]*poti[0]*2.0f;
-			ch[29] = ch[235]*poti[0]*2.0f;
-			ch[30] = ch[236]*poti[0]*2.0f;
+			ch[28] = ch[234]*poti[1]*2.0f;
+			ch[29] = ch[235]*poti[1]*2.0f;
+			ch[30] = ch[236]*poti[1]*2.0f;
 		}else{
 			ch[28] = ch[128]*2;
 			ch[29] = ch[129]*2;
