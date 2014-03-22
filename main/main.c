@@ -443,7 +443,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			}
 
 
-			printf("%d %d %d\n", e.x, e.y, e.type);
+			//printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 #else
 		while(keyboard_poll(&midi_korg,&e)) 
