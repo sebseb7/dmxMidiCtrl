@@ -292,6 +292,9 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	struct timeval tv;
 
+	uint32_t lamp1_mode = 0,lamp2_mode=0;
+
+
 	while(running) {
 
 
@@ -357,11 +360,27 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				poti[e.x-2] = e.y;
 		
 			}
-			if((e.type == 188)&&(e.y == 127)&&(e.x>=20)&&(e.x<36)&&(e.x < 20+animationcount))
+			if((e.type == 188)&&(e.y == 127)&&(e.x>=20)&&(e.x<34)&&(e.x < 20+animationcount))
 			{
 				new_animation = e.x-20;
 			}
-			if((e.type == 188)&&(e.x==6))
+			if((e.type == 188)&&(e.y == 127)&&(e.x==34))
+			{
+				lamp1_mode = 1;
+			}
+			if((e.type == 188)&&(e.y == 127)&&(e.x==35))
+			{
+				lamp2_mode = 1;
+			}
+			if((e.type == 188)&&(e.y == 0)&&(e.x==34))
+			{
+				lamp1_mode = 0;
+			}
+			if((e.type == 188)&&(e.y == 0)&&(e.x==35))
+			{
+				lamp2_mode = 0;
+			}
+			if((e.type == 188)&&(e.x==6)&&(lamp2_mode))
 			{
 				ch[128]=e.y;
 				double h,s,v;
@@ -370,7 +389,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				keyboard_send(&midi_f1,177,35,s*127.0f);
 				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
-			if((e.type == 188)&&(e.x==7))
+			if((e.type == 188)&&(e.x==7)&&(lamp2_mode))
 			{
 				ch[129]=e.y;
 				double h,s,v;
@@ -379,7 +398,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				keyboard_send(&midi_f1,177,35,s*127.0f);
 				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
-			if((e.type == 188)&&(e.x==8))
+			if((e.type == 188)&&(e.x==8)&&(lamp2_mode))
 			{
 				ch[130]=e.y;
 				double h,s,v;
@@ -388,17 +407,32 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				keyboard_send(&midi_f1,177,35,s*127.0f);
 				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
-			if((e.type == 188)&&(e.x==47))
+			if((e.type == 188)&&(e.x==6)&&(lamp1_mode))
 			{
 				ch[134]=e.y;
+				double h,s,v;
+				rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
+				keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
+				keyboard_send(&midi_f1,177,34,s*127.0f);
+				keyboard_send(&midi_f1,178,34,v*127.0f);
 			}
-			if((e.type == 188)&&(e.x==48))
+			if((e.type == 188)&&(e.x==7)&&(lamp1_mode))
 			{
 				ch[135]=e.y;
+				double h,s,v;
+				rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
+				keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
+				keyboard_send(&midi_f1,177,34,s*127.0f);
+				keyboard_send(&midi_f1,178,34,v*127.0f);
 			}
-			if((e.type == 188)&&(e.x==49))
+			if((e.type == 188)&&(e.x==8)&&(lamp1_mode))
 			{
 				ch[136]=e.y;
+				double h,s,v;
+				rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
+				keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
+				keyboard_send(&midi_f1,177,34,s*127.0f);
+				keyboard_send(&midi_f1,178,34,v*127.0f);
 			}
 
 			if((e.type == 188)&&(e.x==12)&&(e.y==127))
