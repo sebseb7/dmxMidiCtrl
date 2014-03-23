@@ -117,9 +117,10 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
 		
-//		if(strstr(di->name, "nanoKONTROL") && di->input)
-	
-//	MidiObj midi_korg;
+#ifdef KORG_CTRL
+	MidiObj midi_korg;
+	keyboard_init(&midi_korg,"nanoKONTROL");
+#endif
 #ifdef KTRL_F1
 	MidiObj midi_f1;
 	keyboard_init(&midi_f1,"Traktor Kontrol F1");
@@ -148,7 +149,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	keyboard_send(&midi_f1,188,39,toggle[2]*127);
 	keyboard_send(&midi_f1,188,40,toggle[3]*127);
 	keyboard_send(&midi_f1,188,12,toggle[4]*127);
-#else
+#endif
+#ifdef KORG_CTRL
 	keyboard_send(&midi_korg,176,43,toggle[0]*127);
 	keyboard_send(&midi_korg,176,44,toggle[1]*127);
 	keyboard_send(&midi_korg,176,42,toggle[2]*127);
@@ -262,7 +264,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	keyboard_send(&midi_f1,176,20,1);
 	keyboard_send(&midi_f1,177,20,127);
 	keyboard_send(&midi_f1,178,20,127);
-#elif
+#endif
+#ifdef KORG_CTRL
 	for(uint8_t i = 32;i <= 39;i++)
 	{
 		keyboard_send(&midi_korg,176,i,0);
@@ -294,7 +297,9 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	struct timeval tv;
 
+#ifdef KTRL_F1
 	uint32_t lamp1_mode = 0,lamp2_mode=0;
+#endif
 
 
 	while(running) {
@@ -481,7 +486,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 			//printf("%d %d %d\n", e.x, e.y, e.type);
 		}
-#else
+#endif
+#ifdef KORG_CTRL
 		while(keyboard_poll(&midi_korg,&e)) 
 		{
 			if((e.type == 176)&&(e.x>=16)&&(e.x<24))
@@ -502,27 +508,27 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			}
 			if((e.type == 176)&&(e.x==0))
 			{
-				ch[128]=e.y;
+				ch[134]=e.y;
 			}
 			if((e.type == 176)&&(e.x==1))
 			{
-				ch[129]=e.y;
+				ch[135]=e.y;
 			}
 			if((e.type == 176)&&(e.x==2))
 			{
-				ch[130]=e.y;
+				ch[136]=e.y;
 			}
 			if((e.type == 176)&&(e.x==3))
 			{
-				ch[134]=e.y;
+				ch[128]=e.y;
 			}
 			if((e.type == 176)&&(e.x==4))
 			{
-				ch[135]=e.y;
+				ch[129]=e.y;
 			}
 			if((e.type == 176)&&(e.x==5))
 			{
-				ch[136]=e.y;
+				ch[130]=e.y;
 			}
 
 			if((e.type == 176)&&(e.x==43)&&(e.y==127))
@@ -588,10 +594,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				gettimeofday(&tv,NULL);
 				last_frame = tv.tv_usec - time_diff;
 		
+#ifdef KTRL_F1
 				uint32_t rest_ticks = ((animations[current_animation].duration-tick_count)/ ((1.0f/animations[current_animation].timing)*1000000.0f));
-
 				keyboard_send(&midi_f1,188,80,rest_ticks+1);
-			}
+#endif
+}
 		}
 
 		{
@@ -618,6 +625,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		
 				//pulsating demo:
 
+#ifdef KTRL_F1
+
 				keyboard_send(&midi_f1,176,33,1);
 				keyboard_send(&midi_f1,177,33,127);
 
@@ -641,7 +650,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				bright*=32;
 				if(bright==256) bright=255;
 				keyboard_send(&midi_f1,178,32,bright);
-			
+#endif
+
 			}
 		}
 
@@ -771,7 +781,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			keyboard_send(&midi_f1,176,20+(current_animation),0);
 			keyboard_send(&midi_f1,177,20+(current_animation),0);
 			keyboard_send(&midi_f1,178,20+(current_animation),0);
-#else
+#endif
+#ifdef KORG_CTRL
 			if(current_animation < 8)
 			{
 				keyboard_send(&midi_korg,176,32+current_animation,0);
@@ -799,7 +810,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			keyboard_send(&midi_f1,176,20+(current_animation),1);
 			keyboard_send(&midi_f1,177,20+(current_animation),127);
 			keyboard_send(&midi_f1,178,20+(current_animation),127);
-#else
+#endif
+#ifdef KORG_CTRL
 			if(current_animation < 8)
 			{
 				keyboard_send(&midi_korg,176,32+current_animation,127);
