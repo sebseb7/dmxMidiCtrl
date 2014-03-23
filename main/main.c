@@ -131,8 +131,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 #endif
 
 
-//	keyboard_init(midi_korg);
-
 	for(uint16_t i = 0; i < 512;i++)
 	{
 		ch[i]=0;
@@ -304,7 +302,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	while(running) {
 
-
+		uint32_t update_ui = 0;
 
 		KeyboardEvent e;
 #ifdef TOUCH_OSC
@@ -313,50 +311,28 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 176)&&(e.x==43)&&(e.y==127))
 			{
 				toggle[0] ^= 1;
-				keyboard_send(&midi_f1,188,12,toggle[0]*127);
-				//keyboard_send(&midi_korg,176,43,toggle[0]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,43,toggle[0]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==44)&&(e.y==127))
 			{
 				toggle[1] ^= 1;
-				keyboard_send(&midi_f1,188,37,toggle[1]*127);
-				//keyboard_send(&midi_korg,176,44,toggle[1]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,44,toggle[1]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==42)&&(e.y==127))
 			{
 				toggle[2] ^= 1;
-				keyboard_send(&midi_f1,188,38,toggle[2]*127);
-				//keyboard_send(&midi_korg,176,42,toggle[2]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,42,toggle[2]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==41)&&(e.y==127))
 			{
 				toggle[3] ^= 1;
-				keyboard_send(&midi_f1,188,39,toggle[3]*127);
-				//keyboard_send(&midi_korg,176,41,toggle[3]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,41,toggle[3]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==45)&&(e.y==127))
 			{
 				toggle[4] ^= 1;
-				keyboard_send(&midi_f1,188,40,toggle[4]*127);
-				//keyboard_send(&midi_korg,176,45,toggle[4]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,45,toggle[4]*127);
-#endif
+				update_ui=1;
 			}
-			
-			//printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 #endif
 #ifdef KTRL_F1
@@ -390,97 +366,54 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 188)&&(e.x==6)&&(lamp2_mode))
 			{
 				ch[128]=e.y;
-				double h,s,v;
-				rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
-				keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
-				keyboard_send(&midi_f1,177,35,s*127.0f);
-				keyboard_send(&midi_f1,178,35,v*127.0f);
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==7)&&(lamp2_mode))
 			{
 				ch[129]=e.y;
-				double h,s,v;
-				rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
-				keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
-				keyboard_send(&midi_f1,177,35,s*127.0f);
-				keyboard_send(&midi_f1,178,35,v*127.0f);
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==8)&&(lamp2_mode))
 			{
 				ch[130]=e.y;
-				double h,s,v;
-				rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
-				keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
-				keyboard_send(&midi_f1,177,35,s*127.0f);
-				keyboard_send(&midi_f1,178,35,v*127.0f);
 			}
 			if((e.type == 188)&&(e.x==6)&&(lamp1_mode))
 			{
 				ch[134]=e.y;
-				double h,s,v;
-				rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
-				keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
-				keyboard_send(&midi_f1,177,34,s*127.0f);
-				keyboard_send(&midi_f1,178,34,v*127.0f);
 			}
 			if((e.type == 188)&&(e.x==7)&&(lamp1_mode))
 			{
 				ch[135]=e.y;
-				double h,s,v;
-				rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
-				keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
-				keyboard_send(&midi_f1,177,34,s*127.0f);
-				keyboard_send(&midi_f1,178,34,v*127.0f);
 			}
 			if((e.type == 188)&&(e.x==8)&&(lamp1_mode))
 			{
 				ch[136]=e.y;
-				double h,s,v;
-				rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
-				keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
-				keyboard_send(&midi_f1,177,34,s*127.0f);
-				keyboard_send(&midi_f1,178,34,v*127.0f);
 			}
 
 			if((e.type == 188)&&(e.x==12)&&(e.y==127))
 			{
 				toggle[0] ^= 1;
-				keyboard_send(&midi_f1,188,12,toggle[0]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,43,toggle[0]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==37)&&(e.y==127))
 			{
 				toggle[1] ^= 1;
-				keyboard_send(&midi_f1,188,37,toggle[1]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,44,toggle[1]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==38)&&(e.y==127))
 			{
 				toggle[2] ^= 1;
-				keyboard_send(&midi_f1,188,38,toggle[2]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,42,toggle[2]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==39)&&(e.y==127))
 			{
 				toggle[3] ^= 1;
-				keyboard_send(&midi_f1,188,39,toggle[3]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,41,toggle[3]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==40)&&(e.y==127))
 			{
 				toggle[4] ^= 1;
-				keyboard_send(&midi_f1,188,40,toggle[4]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,45,toggle[4]*127);
-#endif
+				update_ui=1;
 			}
 
 
@@ -509,71 +442,98 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 176)&&(e.x==0))
 			{
 				ch[134]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==1))
 			{
 				ch[135]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==2))
 			{
 				ch[136]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==3))
 			{
 				ch[128]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==4))
 			{
 				ch[129]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==5))
 			{
 				ch[130]=e.y;
+				update_ui=1;
 			}
 
 			if((e.type == 176)&&(e.x==43)&&(e.y==127))
 			{
 				toggle[0] ^= 1;
-				keyboard_send(&midi_korg,176,43,toggle[0]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,43,toggle[0]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==44)&&(e.y==127))
 			{
 				toggle[1] ^= 1;
-				keyboard_send(&midi_korg,176,44,toggle[1]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,44,toggle[1]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==42)&&(e.y==127))
 			{
 				toggle[2] ^= 1;
-				keyboard_send(&midi_korg,176,42,toggle[2]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,42,toggle[2]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==41)&&(e.y==127))
 			{
 				toggle[3] ^= 1;
-				keyboard_send(&midi_korg,176,41,toggle[3]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,41,toggle[3]*127);
-#endif
+				update_ui=1;
 			}
 			if((e.type == 176)&&(e.x==45)&&(e.y==127))
 			{
 				toggle[4] ^= 1;
-				keyboard_send(&midi_korg,176,45,toggle[4]*127);
-#ifdef TOUCH_OSC
-				keyboard_send(&midi_touch,176,45,toggle[4]*127);
-#endif
+				update_ui=1;
 			}
 		}
 #endif
 
+
+		if(update_ui)
+		{
+#ifdef TOUCH_OSC
+			keyboard_send(&midi_touch,176,43,toggle[0]*127);
+			keyboard_send(&midi_touch,176,44,toggle[1]*127);
+			keyboard_send(&midi_touch,176,42,toggle[2]*127);
+			keyboard_send(&midi_touch,176,41,toggle[3]*127);
+			keyboard_send(&midi_touch,176,45,toggle[4]*127);
+#endif
+#ifdef KTRL_F1	
+			keyboard_send(&midi_f1,188,12,toggle[0]*127);
+			keyboard_send(&midi_f1,188,37,toggle[1]*127);
+			keyboard_send(&midi_f1,188,38,toggle[2]*127);
+			keyboard_send(&midi_f1,188,39,toggle[3]*127);
+			keyboard_send(&midi_f1,188,40,toggle[4]*127);
+				
+			double h,s,v;
+			rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
+			keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
+			keyboard_send(&midi_f1,177,35,s*127.0f);
+			keyboard_send(&midi_f1,178,35,v*127.0f);
+
+			rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
+			keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
+			keyboard_send(&midi_f1,177,34,s*127.0f);
+			keyboard_send(&midi_f1,178,34,v*127.0f);
+#endif
+#ifdef KORG_CTRL
+			keyboard_send(&midi_korg,176,43,toggle[0]*127);
+			keyboard_send(&midi_korg,176,44,toggle[1]*127);
+			keyboard_send(&midi_korg,176,42,toggle[2]*127);
+			keyboard_send(&midi_korg,176,41,toggle[3]*127);
+			keyboard_send(&midi_korg,176,45,toggle[4]*127);
+#endif
+		}
 		{
 			unsigned long long current_time;
 			int32_t time_diff;
