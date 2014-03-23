@@ -582,7 +582,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		{
 			time_diff -= animations[current_animation].timing;
 			animations[current_animation].tick_fp();
-			tick_count++;
+			if(toggle[0])tick_count++;
 			gettimeofday(&tv,NULL);
 			last_frame = tv.tv_usec - time_diff;
 	
