@@ -32,12 +32,6 @@ void invLedX(uint8_t x);
 void Delay(uint16_t t);
 void getLedX(uint8_t x, uint8_t* red, uint8_t* green, uint8_t* blue);
 
-#define ADDR_QF1 1
-#define ADDR_QF2 5
-#define ADDR_LED1 16
-#define ADDR_LED2 22
-#define ADDR_LED3 28
-#define ADDR_LED4 34
 
 #endif
 

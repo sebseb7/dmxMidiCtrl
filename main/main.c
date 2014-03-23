@@ -287,8 +287,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	animations[current_animation].init_fp();
 
 	int tick_count = 0;
+	int tick_count_ui = 0;
 
 	unsigned long long last_frame;
+	unsigned long long last_frame_ui;
 
 	struct timeval tv;
 
@@ -566,34 +568,86 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 #endif
 
-
-		unsigned long long current_time;
-		int32_t time_diff;
-		gettimeofday(&tv,NULL);
-		current_time = tv.tv_usec;
-		time_diff = current_time - last_frame;
-
-		if(time_diff < 0 )
 		{
-			time_diff+=1000000;
-		}
-
-		if((uint32_t)time_diff > animations[current_animation].timing)
-		{
-			time_diff -= animations[current_animation].timing;
-			animations[current_animation].tick_fp();
-			if(toggle[0])tick_count++;
+			unsigned long long current_time;
+			int32_t time_diff;
 			gettimeofday(&tv,NULL);
-			last_frame = tv.tv_usec - time_diff;
-	
-			uint32_t rest_ticks = ((animations[current_animation].duration-tick_count)/ ((1.0f/animations[current_animation].timing)*1000000.0f));
+			current_time = tv.tv_usec;
+			time_diff = current_time - last_frame;
 
-			keyboard_send(&midi_f1,188,80,rest_ticks+1);
+			if(time_diff < 0 )
+			{
+				time_diff+=1000000;
+			}
+
+			if((uint32_t)time_diff > animations[current_animation].timing)
+			{
+				time_diff -= animations[current_animation].timing;
+				animations[current_animation].tick_fp();
+				if(toggle[0])tick_count++;
+				gettimeofday(&tv,NULL);
+				last_frame = tv.tv_usec - time_diff;
+		
+				uint32_t rest_ticks = ((animations[current_animation].duration-tick_count)/ ((1.0f/animations[current_animation].timing)*1000000.0f));
+
+				keyboard_send(&midi_f1,188,80,rest_ticks+1);
+			}
+		}
+
+		{
+			unsigned long long current_time;
+			int32_t time_diff;
+			gettimeofday(&tv,NULL);
+			current_time = tv.tv_usec;
+			time_diff = current_time - last_frame_ui;
+
+			if(time_diff < 0 )
+			{
+				time_diff+=1000000;
+			}
+
+			if((uint32_t)time_diff > 50000) // 20Hz
+			{
+				time_diff -= 50000;
+				tick_count_ui++;
+				gettimeofday(&tv,NULL);
+				last_frame_ui = tv.tv_usec - time_diff;
+		
+			
+		
+		
+				//pulsating demo:
+
+				keyboard_send(&midi_f1,176,33,1);
+				keyboard_send(&midi_f1,177,33,127);
+
+				uint16_t bright = tick_count_ui%16;
+				if(bright > 8)
+				{
+					bright = 8-(bright-8);
+				}
+				bright*=32;
+				if(bright==256) bright=255;
+				keyboard_send(&midi_f1,178,33,bright);
+	
+				keyboard_send(&midi_f1,176,32,64);
+				keyboard_send(&midi_f1,177,32,127);
+
+				bright = (tick_count_ui+8)%16;
+				if(bright > 8)
+				{
+					bright = 8-(bright-8);
+				}
+				bright*=32;
+				if(bright==256) bright=255;
+				keyboard_send(&midi_f1,178,32,bright);
+			
+			}
 		}
 
 
 
-		if(toggle[3])
+		if(toggle[3] == 0)
 		{
 			ch[34] = ch[134]*2;
 			ch[35] = ch[135]*2;
@@ -606,7 +660,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			ch[36] = ch[236]*poti[0]*2.0f;
 		}
 
-		if(toggle[4] == 0)
+		if(toggle[4])
 		{
 			ch[28] = ch[234]*poti[1]*2.0f;
 			ch[29] = ch[235]*poti[1]*2.0f;
@@ -655,7 +709,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		usleep(10);
 
-		ret = ftdi_write_data(ftdi, ch, 39);
+		ret = ftdi_write_data(ftdi, ch, 65);
 		if (ret < 0)
 		{
 			fprintf(stderr,"write failed , error %d (%s)\n",ret, ftdi_get_error_string(ftdi));
@@ -700,7 +754,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		   printf("\n");
 		   */
 
-		if((ftStatus = FT_Write(ftHandle, ch, 39, &BytesWritten)) != FT_OK) {
+		if((ftStatus = FT_Write(ftHandle, ch, 65, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
 			return 1;
 		}

@@ -1,17 +1,6 @@
 #include "main.h"
 #include <stdio.h>
-
-// ch1 : 1-16 red
-// 		 17-33 green
-// 		 34-50 blue
-
-
-// ch2 : 0-9 no rot
-//       10-120 clockwise
-//       121-134 no
-//       135-245 counter
-//       246-249 no 
-//       250-255 music
+#include "dmx_devices.h"
 
 uint16_t a;
 
@@ -19,79 +8,47 @@ static uint8_t tick(void)
 {
 	a++;
 
-
 	if(((a % 80) == 0)||((a % 80) == 10))
 	{
-		setCh(1,1);
-		setCh(5,1);
-		setCh(4,255);
-		setCh(8,255);
-		setCh(16,255);
-		setCh(17,0);
-		setCh(18,0);
-		setCh(22,255);
-		setCh(23,0);
-		setCh(24,0);
-		setCh(234,1);
-		setCh(235,0);
-		setCh(236,0);
+		set_quadphase(ADDR_QF1, -38,255,0,0);
+		set_quadphase(ADDR_QF2, -38,255,0,0);
+
+		set_par56(ADDR_LED1, 255,0,0);
+		set_par56(ADDR_LED2, 255,0,0);
+		set_par56(ADDR_LED3, 0,0,0);
+		set_par56(ADDR_LED4, 255,0,0);
 	}
 	if(((a % 80) == 1)||((a % 80) == 11))
 	{
-		setCh(4,0);
-		setCh(8,0);
-		setCh(16,0);
-		setCh(17,0);
-		setCh(18,0);
-		setCh(22,0);
-		setCh(23,0);
-		setCh(24,0);
-		setCh(234,0);
-		setCh(235,0);
-		setCh(236,0);
+		set_quadphase(ADDR_QF1, -38,0,0,0);
+		set_quadphase(ADDR_QF2, -38,0,0,0);
+
+		set_par56(ADDR_LED1, 0,0,0);
+		set_par56(ADDR_LED2, 0,0,0);
+		set_par56(ADDR_LED3, 0,0,0);
+		set_par56(ADDR_LED4, 0,0,0);
 	}
 	if(((a % 80) == 40)||((a % 80) == 50))
 	{
-		setCh(1,35);
-		setCh(5,35);
-		setCh(4,255);
-		setCh(8,255);
-		setCh(16,0);
-		setCh(17,0);
-		setCh(18,255);
-		setCh(22,0);
-		setCh(23,0);
-		setCh(24,255);
-		setCh(234,0);
-		setCh(235,0);
-		setCh(236,1);
+		set_quadphase(ADDR_QF1, -38,0,0,255);
+		set_quadphase(ADDR_QF2, -38,0,0,255);
+
+		set_par56(ADDR_LED1, 0,0,255);
+		set_par56(ADDR_LED2, 0,0,255);
+		set_par56(ADDR_LED3, 0,0,0);
+		set_par56(ADDR_LED4, 0,0,255);
 	}
 	if(((a % 80) == 41)||((a % 80) == 51))
 	{
-		setCh(4,0);
-		setCh(8,0);
-		setCh(16,0);
-		setCh(17,0);
-		setCh(18,0);
-		setCh(22,0);
-		setCh(23,0);
-		setCh(24,0);
-		setCh(234,0);
-		setCh(235,0);
-		setCh(236,0);
+		set_quadphase(ADDR_QF1, -38,0,0,0);
+		set_quadphase(ADDR_QF2, -38,0,0,0);
+
+		set_par56(ADDR_LED1, 0,0,0);
+		set_par56(ADDR_LED2, 0,0,0);
+		set_par56(ADDR_LED3, 0,0,0);
+		set_par56(ADDR_LED4, 0,0,0);
 	}
 
-	setCh(2,90);
-	setCh(6,90);
-	setCh(3,0);
-	setCh(7,0);
-	setCh(19,0);
-	setCh(20,0);
-	setCh(21,0);
-
-	setCh(25,0);
-	setCh(26,0);
-	setCh(27,0);
 
 	return 1;
 }

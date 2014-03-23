@@ -26,7 +26,7 @@ static uint8_t tick(void)
 
 	set_par56(ADDR_LED1, 255,0,0);
 	set_par56(ADDR_LED2, 255,0,0);
-	set_par56(ADDR_LED3, 0,0,0);
+	//set_par56(ADDR_LED3, 255,0,0);
 	set_par56(ADDR_LED4, 255,0,0);
 
 	return 1;
