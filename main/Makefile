@@ -4,7 +4,6 @@ COMPILER = gcc
 
 
 FLAGS= -I. -I../firmware --std=gnu99 -Wall  -funsigned-char -Wundef -Wsign-compare  -Wstrict-prototypes  -Wextra -L. 
-FLAGS+= -DLIBFTDI=1 
 LDFLAGS= -lportmidi -lftdi1 
 
 SOURCES=$(wildcard ../animations/*.c)

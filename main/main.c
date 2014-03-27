@@ -11,7 +11,8 @@
 
 #ifdef LIBFTDI
 	#include "libftdi1/ftdi.h"
-#else
+#endif
+#ifdef FTD2xx
 	#include "ftd2xx.h"
 #endif
 #include "keyboard.h"
@@ -118,6 +119,10 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
 		
 #ifdef KORG_CTRL
+	MidiObj midi_launch;
+	keyboard_init(&midi_launch,"Launchpad Mini");
+#endif
+#ifdef KORG_CTRL
 	MidiObj midi_korg;
 	keyboard_init(&midi_korg,"nanoKONTROL");
 #endif
@@ -212,7 +217,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		fprintf(stderr, "unable to set baudrate: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
 		exit(-1);
 	}
-#else
+#endif
+#ifdef FTD2xx
 
 	FT_HANDLE ftHandle; 
 
@@ -685,7 +691,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			fprintf(stderr,"write failed , error %d (%s)\n",ret, ftdi_get_error_string(ftdi));
 		}
 		usleep(2000);
-#else
+#endif
+#ifdef FTD2xx
 		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {
 			printf("Error FT_SetBreakon\n");
 			return 1;
@@ -797,7 +804,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		return EXIT_FAILURE;
 	}
 	ftdi_free(ftdi);
-#else
+#endif
+#ifdef FTD2xx
 	FT_Close(ftHandle); 
 #endif
 

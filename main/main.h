@@ -8,6 +8,10 @@
 #define KTRL_F1
 //#define TOUCH_OSC
 #define KORG_CTRL
+#define LAUNCHPAD
+
+//#define LIBFTDI
+//#define FTD2xx 
 
 enum {
 	PAR36 = 1,
