@@ -38,7 +38,7 @@ struct animation {
 	tick_fun tick_fp;
 	deinit_fun deinit_fp;
 	uint16_t type;
-	int duration;
+	uint32_t duration;
 	uint32_t timing;
 	uint32_t idle;
 } animations[MAX_ANIMATIONS];
@@ -118,7 +118,11 @@ void registerAnimation(init_fun init,tick_fun tick, deinit_fun deinit,uint16_t t
 
 int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unused__))) {
 		
-#ifdef KORG_CTRL
+#ifdef WAVECLOCK
+	MidiObj midi_clock;
+	keyboard_init(&midi_clock,"IAC-Treiber Bus 1");
+#endif
+#ifdef LAUNCHPAD
 	MidiObj midi_launch;
 	keyboard_init(&midi_launch,"Launchpad Mini");
 #endif
@@ -146,6 +150,13 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	toggle[2]=1;			
 	toggle[3]=1;			
 	toggle[4]=1;			
+#ifdef LAUNCHPAD
+	keyboard_send(&midi_launch,176,104,toggle[0]*15);
+	keyboard_send(&midi_launch,176,105,toggle[1]*15);
+	keyboard_send(&midi_launch,176,106,toggle[2]*15);
+	keyboard_send(&midi_launch,176,107,toggle[3]*15);
+	keyboard_send(&midi_launch,176,108,toggle[4]*15);
+#endif
 #ifdef KTRL_F1
 	keyboard_send(&midi_f1,188,37,toggle[0]*127);
 	keyboard_send(&midi_f1,188,38,toggle[1]*127);
@@ -278,6 +289,14 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	}
 	keyboard_send(&midi_korg,176,32,127);
 #endif
+#ifdef TOUCH_OSC
+	for(uint8_t i = 32;i <= 39;i++)
+	{
+		keyboard_send(&midi_touch,176,i,0);
+		keyboard_send(&midi_touch,176,i+16,0);
+	}
+	keyboard_send(&midi_korg,176,32,127);
+#endif
 	srand(time(NULL));
 
 	signal(SIGINT, intHandler);
@@ -293,9 +312,12 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	animations[current_animation].init_fp();
 
-	int tick_count = 0;
-	int tick_count_ui = 0;
+	uint32_t tick_count = 0;
+	uint32_t tick_count_ui = 0;
 
+#ifdef WAVECLOCK
+	unsigned long long last_beat;
+#endif
 	unsigned long long last_frame;
 	unsigned long long last_frame_ui;
 
@@ -305,14 +327,108 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	uint32_t lamp1_mode = 0,lamp2_mode=0;
 #endif
 
+#ifdef WAVECLOCK
+	uint16_t beat = 0;
+	uint16_t beat_pulse = 0;
+
+	float bpm = 0.0f;
+#endif
+
 
 	while(running) {
 
 		uint32_t update_ui = 0;
-
+		
 		KeyboardEvent e;
+
+#ifdef WAVECLOCK
+		while(keyboard_poll(&midi_clock,&e)) 
+		{
+			if(e.type == 250)
+			{
+				beat_pulse=0;
+			}
+			if(e.type == 248)
+			{
+
+				beat_pulse++;
+				if(beat_pulse==24)
+				{
+					beat++;
+					beat_pulse=0;
+					printf("beat\n");
+
+					int32_t time_diff;
+					gettimeofday(&tv,NULL);
+					uint32_t current_time = tv.tv_usec;
+					time_diff = current_time - last_beat;
+					last_beat =  current_time;
+
+					if(time_diff < 0 )
+					{
+						time_diff+=1000000;
+					}
+
+					bpm = 60.0f/(time_diff/1000000.0f);
+
+
+				}
+
+				if(bpm < 110.0f)
+				{
+					if(beat_pulse == 12)
+					{
+						printf("beat\n");
+					}
+				}
+			}
+
+
+			//printf("%d %d %d\n", e.x, e.y, e.type);
+		}
+#endif
+
+#ifdef LAUNCHPAD
+		while(keyboard_poll(&midi_launch,&e)) 
+		{
+			if((e.type == 176)&&(e.x==104)&&(e.y==127))
+			{
+				toggle[0] ^= 1;
+				update_ui=1;
+			}
+			if((e.type == 176)&&(e.x==105)&&(e.y==127))
+			{
+				toggle[1] ^= 1;
+				update_ui=1;
+			}
+			if((e.type == 176)&&(e.x==106)&&(e.y==127))
+			{
+				toggle[2] ^= 1;
+				update_ui=1;
+			}
+			if((e.type == 176)&&(e.x==107)&&(e.y==127))
+			{
+				toggle[3] ^= 1;
+				update_ui=1;
+			}
+			if((e.type == 176)&&(e.x==108)&&(e.y==127))
+			{
+				toggle[4] ^= 1;
+				update_ui=1;
+			}
+			if((e.type == 144)&&(e.y == 127)&&(e.x>=0)&&(e.x<8)&&(e.x < 0+animationcount))
+			{
+				new_animation = e.x;
+			}
+			if((e.type == 144)&&(e.y == 127)&&(e.x>=16)&&(e.x<24)&&(e.x < 16+animationcount-8))
+			{
+				new_animation = e.x-16+8;
+			}
+			//printf("%d %d %d\n", e.x, e.y, e.type);
+		}
+#endif
 #ifdef TOUCH_OSC
-		while(keyboard_poll(&midi_touch,&e)) 
+		while(keyboard_poll(&midi_launch,&e)) 
 		{
 			if((e.type == 176)&&(e.x==43)&&(e.y==127))
 			{
@@ -339,6 +455,15 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				toggle[4] ^= 1;
 				update_ui=1;
 			}
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=32)&&(e.x<40)&&(e.x < 32+animationcount))
+			{
+				new_animation = e.x-32;
+			}
+			if((e.type == 176)&&(e.y == 127)&&(e.x>=48)&&(e.x<56)&&(e.x < 48+animationcount-8))
+			{
+				new_animation = e.x-48+8;
+			}
+			printf("%d %d %d\n", e.x, e.y, e.type);
 		}
 #endif
 #ifdef KTRL_F1
@@ -347,7 +472,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 188)&&(e.x>=2)&&(e.x<6))
 			{
 				poti[e.x-2] = e.y;
-		
+
 			}
 			if((e.type == 188)&&(e.y == 127)&&(e.x>=20)&&(e.x<34)&&(e.x < 20+animationcount))
 			{
@@ -507,6 +632,13 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 		if(update_ui)
 		{
+#ifdef LAUNCHPAD
+			keyboard_send(&midi_launch,176,104,toggle[0]*15);
+			keyboard_send(&midi_launch,176,105,toggle[1]*15);
+			keyboard_send(&midi_launch,176,106,toggle[2]*15);
+			keyboard_send(&midi_launch,176,107,toggle[3]*15);
+			keyboard_send(&midi_launch,176,108,toggle[4]*15);
+#endif
 #ifdef TOUCH_OSC
 			keyboard_send(&midi_touch,176,43,toggle[0]*127);
 			keyboard_send(&midi_touch,176,44,toggle[1]*127);
@@ -520,7 +652,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			keyboard_send(&midi_f1,188,38,toggle[2]*127);
 			keyboard_send(&midi_f1,188,39,toggle[3]*127);
 			keyboard_send(&midi_f1,188,40,toggle[4]*127);
-				
+
 			double h,s,v;
 			rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
 			keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
@@ -559,12 +691,12 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				if(toggle[0])tick_count++;
 				gettimeofday(&tv,NULL);
 				last_frame = tv.tv_usec - time_diff;
-		
+
 #ifdef KTRL_F1
 				uint32_t rest_ticks = ((animations[current_animation].duration-tick_count)/ ((1.0f/animations[current_animation].timing)*1000000.0f));
 				keyboard_send(&midi_f1,188,80,rest_ticks+1);
 #endif
-}
+			}
 		}
 
 		{
@@ -585,10 +717,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				tick_count_ui++;
 				gettimeofday(&tv,NULL);
 				last_frame_ui = tv.tv_usec - time_diff;
-		
-			
-		
-		
+
+
+
+
 				//pulsating demo:
 
 #ifdef KTRL_F1
@@ -604,7 +736,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				bright*=32;
 				if(bright==256) bright=255;
 				keyboard_send(&midi_f1,178,33,bright);
-	
+
 				keyboard_send(&midi_f1,176,32,64);
 				keyboard_send(&midi_f1,177,32,127);
 
@@ -662,6 +794,35 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			ch[4]=0;
 			ch[8]=0;
 		}
+
+/*		if(beat_pulse == 0)
+		{
+			ch[28] = 255;
+			ch[29] = 0;
+			ch[30] = 0;
+			ch[34] = 255;
+			ch[35] = 0;
+			ch[36] = 0;
+		}
+		else if((bpm < 110.0f)&&(beat_pulse == 12))
+		{
+			ch[28] = 0;
+			ch[29] = 0;
+			ch[30] = 255;
+			ch[34] = 0;
+			ch[35] = 0;
+			ch[36] = 255;
+		}
+		else
+		{
+			ch[28] = 0;
+			ch[29] = 0;
+			ch[30] = 0;
+			ch[34] = 0;
+			ch[35] = 0;
+			ch[36] = 0;
+		}
+		*/
 #ifdef LIBFTDI
 		ret = ftdi_set_line_property2(ftdi, 8, STOP_BIT_2, NONE,BREAK_ON);
 		if (ret < 0)
@@ -710,27 +871,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		}
 		usleep(10);
 
-		/*
-		   for(uint16_t i = 1;i < 40 ; i++)
-		   {
-		   printf("%3i ",ch[i]);
-
-		   if(i == 4)
-		   printf("| ");
-		   if(i == 8)
-		   printf("| ");
-		   if(i == 15)
-		   printf("| ");
-		   if(i == 21)
-		   printf("| ");
-		   if(i == 27)
-		   printf("| ");
-		   if(i == 33)
-		   printf("| ");
-		   }
-		   printf("\n");
-		   */
-
 		if((ftStatus = FT_Write(ftHandle, ch, 65, &BytesWritten)) != FT_OK) {
 			printf("Error FT_Write\n");
 			return 1;
@@ -749,6 +889,16 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			keyboard_send(&midi_f1,177,20+(current_animation),0);
 			keyboard_send(&midi_f1,178,20+(current_animation),0);
 #endif
+#ifdef LAUNCHPAD
+			if(current_animation < 8)
+			{
+				keyboard_send(&midi_launch,144,0+current_animation,0);
+			}
+			else if(current_animation < 16)
+			{
+				keyboard_send(&midi_launch,144,16+(current_animation-8),0);
+			}
+#endif
 #ifdef KORG_CTRL
 			if(current_animation < 8)
 			{
@@ -757,6 +907,16 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			else if(current_animation < 16)
 			{
 				keyboard_send(&midi_korg,176,48+(current_animation-8),0);
+			}
+#endif
+#ifdef TOUCH_OSC
+			if(current_animation < 8)
+			{
+				keyboard_send(&midi_touch,176,32+current_animation,0);
+			}
+			else if(current_animation < 16)
+			{
+				keyboard_send(&midi_touch,176,48+(current_animation-8),0);
 			}
 #endif
 
@@ -778,6 +938,16 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			keyboard_send(&midi_f1,177,20+(current_animation),127);
 			keyboard_send(&midi_f1,178,20+(current_animation),127);
 #endif
+#ifdef LAUNCHPAD
+			if(current_animation < 8)
+			{
+				keyboard_send(&midi_launch,144,current_animation,60);
+			}
+			else if(current_animation < 16)
+			{
+				keyboard_send(&midi_launch,144,16+(current_animation-8),60);
+			}
+#endif
 #ifdef KORG_CTRL
 			if(current_animation < 8)
 			{
@@ -786,6 +956,16 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			else if(current_animation < 16)
 			{
 				keyboard_send(&midi_korg,176,48+(current_animation-8),127);
+			}
+#endif
+#ifdef TOUCH_OSC
+			if(current_animation < 8)
+			{
+				keyboard_send(&midi_touch,176,32+current_animation,127);
+			}
+			else if(current_animation < 16)
+			{
+				keyboard_send(&midi_touch,176,48+(current_animation-8),127);
 			}
 #endif
 			tick_count=0;
