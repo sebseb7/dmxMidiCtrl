@@ -316,10 +316,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	uint32_t tick_count_ui = 0;
 
 #ifdef WAVECLOCK
-	unsigned long long last_beat;
+	unsigned long long last_beat=0;
 #endif
-	unsigned long long last_frame;
-	unsigned long long last_frame_ui;
+	unsigned long long last_frame=0;
+	unsigned long long last_frame_ui=0;
 
 	struct timeval tv;
 
@@ -507,18 +507,22 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			if((e.type == 188)&&(e.x==8)&&(lamp2_mode))
 			{
 				ch[130]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==6)&&(lamp1_mode))
 			{
 				ch[134]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==7)&&(lamp1_mode))
 			{
 				ch[135]=e.y;
+				update_ui=1;
 			}
 			if((e.type == 188)&&(e.x==8)&&(lamp1_mode))
 			{
 				ch[136]=e.y;
+				update_ui=1;
 			}
 
 			if((e.type == 188)&&(e.x==12)&&(e.y==127))
