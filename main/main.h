@@ -12,7 +12,7 @@
 
 //#define WAVECLOCK
 
-#define LIBFTDI
+//#define LIBFTDI
 //#define FTD2xx 
 
 enum {
