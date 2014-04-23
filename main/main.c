@@ -10,12 +10,18 @@
 #include<sys/time.h>
 
 #ifdef LIBFTDI
-	#include "libftdi1/ftdi.h"
+#include "libftdi1/ftdi.h"
 #endif
+
 #ifdef FTD2xx
-	#include "ftd2xx.h"
+#include "ftd2xx.h"
 #endif
+
 #include "keyboard.h"
+
+#ifdef SDL_OUTPUT
+#include <SDL/SDL.h>
+#endif
 
 static uint8_t ch[512];
 static uint8_t toggle[5];
@@ -137,6 +143,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 #ifdef TOUCH_OSC
 	MidiObj midi_touch;
 	keyboard_init(&midi_touch,"TouchOSC Bridge");
+#endif
+
+#ifdef SDL_OUTPUT
+	SDL_Surface* screen;
+	screen = SDL_SetVideoMode(100,100,32, SDL_SWSURFACE | SDL_DOUBLEBUF);
 #endif
 
 
@@ -340,6 +351,30 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		uint32_t update_ui = 0;
 		
 		KeyboardEvent e;
+		
+		
+		
+#ifdef SDL_OUTPUT
+		SDL_Event ev;
+		while(SDL_PollEvent(&ev)) {
+			switch(ev.type) {
+				case SDL_QUIT:
+					running = 0;
+					break;
+				case SDL_KEYUP:
+					break;
+				case SDL_KEYDOWN:
+					switch(ev.key.keysym.sym) {
+						case SDLK_ESCAPE:
+							running = 0;
+							break;
+						default: break;
+					}
+				default: break;
+			}
+		}
+#endif
+
 
 #ifdef WAVECLOCK
 		while(keyboard_poll(&midi_clock,&e)) 
@@ -855,7 +890,6 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		{
 			fprintf(stderr,"write failed , error %d (%s)\n",ret, ftdi_get_error_string(ftdi));
 		}
-		usleep(2000);
 #endif
 #ifdef FTD2xx
 		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {
@@ -879,10 +913,37 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			printf("Error FT_Write\n");
 			return 1;
 		}
-		usleep(2000);
 
 #endif
-
+		usleep(2000);
+			
+#ifdef SDL_OUTPUT			
+		SDL_Rect rect = { 0, 0, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect, 
+			SDL_MapRGB(screen->format,ch[16],ch[17],ch[18])
+		);
+		SDL_Rect rect2 = { 0, 50, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect2, 
+			SDL_MapRGB(screen->format,ch[22],ch[23],ch[24])
+		);
+		SDL_Rect rect3 = { 50, 0, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect3, 
+			SDL_MapRGB(screen->format,ch[28],ch[29],ch[30])
+		);
+		SDL_Rect rect4 = { 50, 50, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect4, 
+			SDL_MapRGB(screen->format,ch[34],ch[35],ch[36])
+		);
+		SDL_Flip(screen);
+#endif
 
 		if((((tick_count >= animations[current_animation].duration)&& toggle[0]))||(new_animation != current_animation))
 		{
@@ -989,8 +1050,13 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	}
 	ftdi_free(ftdi);
 #endif
+
 #ifdef FTD2xx
 	FT_Close(ftHandle); 
+#endif
+
+#ifdef SDL_OUTPUT
+	SDL_Quit();
 #endif
 
 	return 0;
