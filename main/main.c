@@ -451,7 +451,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				toggle[4] ^= 1;
 				update_ui=1;
 			}
-			if((e.type == 144)&&(e.y == 127)&&(e.x>=0)&&(e.x<8)&&(e.x < 0+animationcount))
+			if((e.type == 144)&&(e.y == 127)&&(e.x<8)&&(e.x < 0+animationcount))
 			{
 				new_animation = e.x;
 			}
