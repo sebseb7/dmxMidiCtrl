@@ -300,6 +300,14 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	}
 	keyboard_send(&midi_korg,176,32,127);
 #endif
+#ifdef LAUNCHPAD
+	for(uint8_t i = 0;i <= 8;i++)
+	{
+		keyboard_send(&midi_launch,144,i,0);
+		keyboard_send(&midi_launch,144,i+15,0);
+	}
+	keyboard_send(&midi_launch,144,0,60);
+#endif
 #ifdef TOUCH_OSC
 	for(uint8_t i = 32;i <= 39;i++)
 	{
