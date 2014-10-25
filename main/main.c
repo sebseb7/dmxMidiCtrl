@@ -204,16 +204,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	int ret;
 	struct ftdi_context *ftdi;
-	struct ftdi_version_info version;
 	if ((ftdi = ftdi_new()) == 0)
 	{
 		fprintf(stderr, "ftdi_new failed\n");
 		return EXIT_FAILURE;
 	}
-	version = ftdi_get_library_version();
-	printf("Initialized libftdi %s (major: %d, minor: %d, micro: %d, snapshot ver: %s)\n",
-			version.version_str, version.major, version.minor, version.micro,
-			version.snapshot_str);
 	if ((ret = ftdi_usb_open(ftdi, 0x0403, 0x6001)) < 0)
 	{
 		fprintf(stderr, "unable to open ftdi device: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
@@ -459,7 +454,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				toggle[4] ^= 1;
 				update_ui=1;
 			}
-			if((e.type == 144)&&(e.y == 127)&&(e.x>=0)&&(e.x<8)&&(e.x < 0+animationcount))
+			if((e.type == 144)&&(e.y == 127)&&(e.x<8)&&(e.x < 0+animationcount))
 			{
 				new_animation = e.x;
 			}
