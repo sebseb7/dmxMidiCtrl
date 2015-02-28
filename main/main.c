@@ -10,12 +10,18 @@
 #include<sys/time.h>
 
 #ifdef LIBFTDI
-	#include "libftdi1/ftdi.h"
+#include "libftdi1/ftdi.h"
 #endif
+
 #ifdef FTD2xx
-	#include "ftd2xx.h"
+#include "ftd2xx.h"
 #endif
+
 #include "keyboard.h"
+
+#ifdef SDL_OUTPUT
+#include <SDL/SDL.h>
+#endif
 
 static uint8_t ch[512];
 static uint8_t toggle[5];
@@ -139,6 +145,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	keyboard_init(&midi_touch,"TouchOSC Bridge");
 #endif
 
+#ifdef SDL_OUTPUT
+	SDL_Surface* screen;
+	screen = SDL_SetVideoMode(100,100,32, SDL_SWSURFACE | SDL_DOUBLEBUF);
+#endif
+
 
 	for(uint16_t i = 0; i < 512;i++)
 	{
@@ -193,16 +204,11 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 	int ret;
 	struct ftdi_context *ftdi;
-	struct ftdi_version_info version;
 	if ((ftdi = ftdi_new()) == 0)
 	{
 		fprintf(stderr, "ftdi_new failed\n");
 		return EXIT_FAILURE;
 	}
-	version = ftdi_get_library_version();
-	printf("Initialized libftdi %s (major: %d, minor: %d, micro: %d, snapshot ver: %s)\n",
-			version.version_str, version.major, version.minor, version.micro,
-			version.snapshot_str);
 	if ((ret = ftdi_usb_open(ftdi, 0x0403, 0x6001)) < 0)
 	{
 		fprintf(stderr, "unable to open ftdi device: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
@@ -272,13 +278,13 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 #ifdef KTRL_F1
 	for(uint8_t i = 0;i <= 16;i++)
 	{
-		keyboard_send(&midi_f1,176,i+20,1); // HUE
-		keyboard_send(&midi_f1,177,i+20,127); // SAT
-		keyboard_send(&midi_f1,178,i+20,0); // BRI
+		keyboard_send(&midi_f1,176,i+10,1); // HUE
+		keyboard_send(&midi_f1,177,i+10,127); // SAT
+		keyboard_send(&midi_f1,178,i+10,0); // BRI
 	}
-	keyboard_send(&midi_f1,176,20,1);
-	keyboard_send(&midi_f1,177,20,127);
-	keyboard_send(&midi_f1,178,20,127);
+	keyboard_send(&midi_f1,176,10,1);
+	keyboard_send(&midi_f1,177,10,127);
+	keyboard_send(&midi_f1,178,10,127);
 #endif
 #ifdef KORG_CTRL
 	for(uint8_t i = 32;i <= 39;i++)
@@ -288,6 +294,14 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		keyboard_send(&midi_korg,176,i+32,0);
 	}
 	keyboard_send(&midi_korg,176,32,127);
+#endif
+#ifdef LAUNCHPAD
+	for(uint8_t i = 0;i <= 8;i++)
+	{
+		keyboard_send(&midi_launch,144,i,0);
+		keyboard_send(&midi_launch,144,i+15,0);
+	}
+	keyboard_send(&midi_launch,144,0,60);
 #endif
 #ifdef TOUCH_OSC
 	for(uint8_t i = 32;i <= 39;i++)
@@ -340,6 +354,30 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		uint32_t update_ui = 0;
 		
 		KeyboardEvent e;
+		
+		
+		
+#ifdef SDL_OUTPUT
+		SDL_Event ev;
+		while(SDL_PollEvent(&ev)) {
+			switch(ev.type) {
+				case SDL_QUIT:
+					running = 0;
+					break;
+				case SDL_KEYUP:
+					break;
+				case SDL_KEYDOWN:
+					switch(ev.key.keysym.sym) {
+						case SDLK_ESCAPE:
+							running = 0;
+							break;
+						default: break;
+					}
+				default: break;
+			}
+		}
+#endif
+
 
 #ifdef WAVECLOCK
 		while(keyboard_poll(&midi_clock,&e)) 
@@ -416,7 +454,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				toggle[4] ^= 1;
 				update_ui=1;
 			}
-			if((e.type == 144)&&(e.y == 127)&&(e.x>=0)&&(e.x<8)&&(e.x < 0+animationcount))
+			if((e.type == 144)&&(e.y == 127)&&(e.x<8)&&(e.x < 0+animationcount))
 			{
 				new_animation = e.x;
 			}
@@ -474,23 +512,23 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				poti[e.x-2] = e.y;
 
 			}
-			if((e.type == 188)&&(e.y == 127)&&(e.x>=20)&&(e.x<34)&&(e.x < 20+animationcount))
+			if((e.type == 188)&&(e.y == 127)&&(e.x>=10)&&(e.x<24)&&(e.x < 10+animationcount))
 			{
-				new_animation = e.x-20;
+				new_animation = e.x-10;
 			}
-			if((e.type == 188)&&(e.y == 127)&&(e.x==34))
+			if((e.type == 188)&&(e.y == 127)&&(e.x==24))
 			{
 				lamp1_mode = 1;
 			}
-			if((e.type == 188)&&(e.y == 127)&&(e.x==35))
+			if((e.type == 188)&&(e.y == 127)&&(e.x==25))
 			{
 				lamp2_mode = 1;
 			}
-			if((e.type == 188)&&(e.y == 0)&&(e.x==34))
+			if((e.type == 188)&&(e.y == 0)&&(e.x==24))
 			{
 				lamp1_mode = 0;
 			}
-			if((e.type == 188)&&(e.y == 0)&&(e.x==35))
+			if((e.type == 188)&&(e.y == 0)&&(e.x==25))
 			{
 				lamp2_mode = 0;
 			}
@@ -659,14 +697,14 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 			double h,s,v;
 			rgb2hsv(ch[128], ch[129], ch[130], &h,&s,&v);
-			keyboard_send(&midi_f1,176,35,h/360.0f*127.0f);
-			keyboard_send(&midi_f1,177,35,s*127.0f);
-			keyboard_send(&midi_f1,178,35,v*127.0f);
+			keyboard_send(&midi_f1,176,25,h/360.0f*127.0f);
+			keyboard_send(&midi_f1,177,25,s*127.0f);
+			keyboard_send(&midi_f1,178,25,v*127.0f);
 
 			rgb2hsv(ch[134], ch[135], ch[136], &h,&s,&v);
-			keyboard_send(&midi_f1,176,34,h/360.0f*127.0f);
-			keyboard_send(&midi_f1,177,34,s*127.0f);
-			keyboard_send(&midi_f1,178,34,v*127.0f);
+			keyboard_send(&midi_f1,176,24,h/360.0f*127.0f);
+			keyboard_send(&midi_f1,177,24,s*127.0f);
+			keyboard_send(&midi_f1,178,24,v*127.0f);
 #endif
 #ifdef KORG_CTRL
 			keyboard_send(&midi_korg,176,43,toggle[0]*127);
@@ -698,7 +736,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 #ifdef KTRL_F1
 				uint32_t rest_ticks = ((animations[current_animation].duration-tick_count)/ ((1.0f/animations[current_animation].timing)*1000000.0f));
-				keyboard_send(&midi_f1,188,80,rest_ticks+1);
+				keyboard_send(&midi_f1,188,41,rest_ticks+1);
 #endif
 			}
 		}
@@ -729,8 +767,8 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 
 #ifdef KTRL_F1
 
-				keyboard_send(&midi_f1,176,33,1);
-				keyboard_send(&midi_f1,177,33,127);
+				keyboard_send(&midi_f1,176,23,1);
+				keyboard_send(&midi_f1,177,23,127);
 
 				uint16_t bright = tick_count_ui%16;
 				if(bright > 8)
@@ -739,10 +777,10 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				}
 				bright*=32;
 				if(bright==256) bright=255;
-				keyboard_send(&midi_f1,178,33,bright);
+				keyboard_send(&midi_f1,178,23,bright);
 
-				keyboard_send(&midi_f1,176,32,64);
-				keyboard_send(&midi_f1,177,32,127);
+				keyboard_send(&midi_f1,176,22,64);
+				keyboard_send(&midi_f1,177,22,127);
 
 				bright = (tick_count_ui+8)%16;
 				if(bright > 8)
@@ -751,7 +789,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				}
 				bright*=32;
 				if(bright==256) bright=255;
-				keyboard_send(&midi_f1,178,32,bright);
+				keyboard_send(&midi_f1,178,22,bright);
 #endif
 
 			}
@@ -879,19 +917,46 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 			printf("Error FT_Write\n");
 			return 1;
 		}
-		usleep(2000);
 
 #endif
-
+		usleep(2000);
+			
+#ifdef SDL_OUTPUT			
+		SDL_Rect rect = { 0, 0, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect, 
+			SDL_MapRGB(screen->format,ch[16],ch[17],ch[18])
+		);
+		SDL_Rect rect2 = { 0, 50, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect2, 
+			SDL_MapRGB(screen->format,ch[22],ch[23],ch[24])
+		);
+		SDL_Rect rect3 = { 50, 0, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect3, 
+			SDL_MapRGB(screen->format,ch[28],ch[29],ch[30])
+		);
+		SDL_Rect rect4 = { 50, 50, 50, 50 };
+		SDL_FillRect(
+			screen, 
+			&rect4, 
+			SDL_MapRGB(screen->format,ch[34],ch[35],ch[36])
+		);
+		SDL_Flip(screen);
+#endif
 
 		if((((tick_count >= animations[current_animation].duration)&& toggle[0]))||(new_animation != current_animation))
 		{
 			animations[current_animation].deinit_fp();
 
 #ifdef KTRL_F1
-			keyboard_send(&midi_f1,176,20+(current_animation),0);
-			keyboard_send(&midi_f1,177,20+(current_animation),0);
-			keyboard_send(&midi_f1,178,20+(current_animation),0);
+			keyboard_send(&midi_f1,176,10+(current_animation),0);
+			keyboard_send(&midi_f1,177,10+(current_animation),0);
+			keyboard_send(&midi_f1,178,10+(current_animation),0);
 #endif
 #ifdef LAUNCHPAD
 			if(current_animation < 8)
@@ -938,9 +1003,9 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 				new_animation= current_animation;
 			}
 #ifdef KTRL_F1
-			keyboard_send(&midi_f1,176,20+(current_animation),1);
-			keyboard_send(&midi_f1,177,20+(current_animation),127);
-			keyboard_send(&midi_f1,178,20+(current_animation),127);
+			keyboard_send(&midi_f1,176,10+(current_animation),1);
+			keyboard_send(&midi_f1,177,10+(current_animation),127);
+			keyboard_send(&midi_f1,178,10+(current_animation),127);
 #endif
 #ifdef LAUNCHPAD
 			if(current_animation < 8)
@@ -989,8 +1054,13 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 	}
 	ftdi_free(ftdi);
 #endif
+
 #ifdef FTD2xx
 	FT_Close(ftHandle); 
+#endif
+
+#ifdef SDL_OUTPUT
+	SDL_Quit();
 #endif
 
 	return 0;

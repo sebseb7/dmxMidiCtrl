@@ -15,6 +15,7 @@
 #define LIBFTDI
 //#define FTD2xx 
 
+
 enum {
 	PAR36 = 1,
 	PAR36_UV = 2,
