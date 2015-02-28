@@ -855,7 +855,7 @@ int main(int argc __attribute__((__unused__)), char *argv[] __attribute__((__unu
 		{
 			fprintf(stderr,"write failed , error %d (%s)\n",ret, ftdi_get_error_string(ftdi));
 		}
-		usleep(2000);
+		usleep(4000);
 #endif
 #ifdef FTD2xx
 		if((ftStatus = FT_SetBreakOn(ftHandle)) != FT_OK) {

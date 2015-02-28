@@ -5,9 +5,9 @@
 
 #define CONSTRUCTOR_ATTRIBUTES	__attribute__((constructor));
 
-#define KTRL_F1
+//#define KTRL_F1
 //#define TOUCH_OSC
-//#define KORG_CTRL
+#define KORG_CTRL
 //#define LAUNCHPAD
 
 //#define WAVECLOCK
